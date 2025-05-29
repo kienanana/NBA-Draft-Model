@@ -11,3 +11,9 @@ dependencies:
   - seaborn
   - xgboost
   - ipykernel
+  - selenium
+  - beautifulsoup4
+  - lxml
+  - pip
+  - pip: 
+      - webdriver-manager
