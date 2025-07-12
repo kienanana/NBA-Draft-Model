@@ -38,24 +38,39 @@ def compute_composite_score(row, feature_weights):
     return score
 
 
+def normalize_series(series):
+    """
+    Normalize a pandas Series to a 0–100 range.
+    """
+    min_val = series.min()
+    max_val = series.max()
+    if max_val - min_val == 0:
+        return pd.Series(50.0, index=series.index)  # avoid division by zero
+    return 100 * (series - min_val) / (max_val - min_val)
+
+
 def add_composite_scores(df, college_weights, noncollege_weights):
     """
-    Adds composite scores to dataframe, applying different formulas based on classification.
+    Adds normalized composite scores to dataframe, per classification.
     """
     offense_scores, defense_scores, general_scores = [], [], []
-    
+
     for _, row in df.iterrows():
-        if row["classification"] == "College":
-            weights = college_weights
-        else:
-            weights = noncollege_weights
-        
+        weights = college_weights if row["classification"] == "College" else noncollege_weights
         offense_scores.append(compute_composite_score(row, weights["offense"]))
         defense_scores.append(compute_composite_score(row, weights["defense"]))
         general_scores.append(compute_composite_score(row, weights["general"]))
-    
-    df["OffenseScore"] = offense_scores
-    df["DefenseScore"] = defense_scores
-    df["GeneralScore"] = general_scores
-    
+
+    df["OffenseScore_raw"] = offense_scores
+    df["DefenseScore_raw"] = defense_scores
+    df["GeneralScore_raw"] = general_scores
+
+    # 🧩 Normalize across all players (not per classification)
+    df["OffenseScore"] = normalize_series(df["OffenseScore_raw"])
+    df["DefenseScore"] = normalize_series(df["DefenseScore_raw"])
+    df["GeneralScore"] = normalize_series(df["GeneralScore_raw"])
+
+
+    # Optional cleanup
+    df.drop(columns=["OffenseScore_raw", "DefenseScore_raw", "GeneralScore_raw"], inplace=True)
     return df
