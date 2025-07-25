@@ -1,50 +1,34 @@
+import os
 import pandas as pd
-import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+import joblib
 
-### --- PLAYSTYLE CLUSTERING --- ###
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-def compute_playstyle_clusters(df, feature_cols, n_clusters=5, use_pca=True, pca_components=2, plot=True):
-    """
-    Performs PCA (optional) and KMeans clustering to assign playstyle labels.
-    Adds 'Playstyle' column to the dataframe.
-    """
-    
-    # Drop rows with missing required features
-    df_clean = df.dropna(subset=feature_cols)
-    X = df_clean[feature_cols].values
-    
-    # Standardize features
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+def compute_playstyle_clusters(df, feature_cols, classification):
+    if classification == "College":
+        kmeans_path = os.path.join(PROJECT_ROOT, "models", "kmeans_college.pkl")
+    else:
+        kmeans_path = os.path.join(PROJECT_ROOT, "models", "kmeans_noncollege.pkl")
 
-    # Optional PCA
-    if use_pca:
-        pca = PCA(n_components=pca_components)
-        X_scaled = pca.fit_transform(X_scaled)
+    # Load model
+    if not os.path.exists(kmeans_path):
+        raise FileNotFoundError(f"❌ Cluster model not found at: {kmeans_path}")
 
-    # KMeans clustering
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    clusters = kmeans.fit_predict(X_scaled)
+    kmeans = joblib.load(kmeans_path)
 
-    # Assign cluster labels back to dataframe
-    df_clean = df_clean.copy()
-    df_clean['Playstyle'] = clusters
+    # Only use rows with complete features
+    valid_rows = df.dropna(subset=feature_cols).copy()
+    clusters = kmeans.predict(valid_rows[feature_cols])
+    valid_rows["cluster"] = clusters
 
-    # Merge back with original dataframe to preserve all rows
-    df = df.merge(df_clean[['Name', 'Playstyle']], on='Name', how='left')
+        
 
-    # Optional 2D Plot
-    if plot and use_pca and pca_components == 2:
-        plt.figure(figsize=(8,6))
-        scatter = plt.scatter(X_scaled[:,0], X_scaled[:,1], c=clusters, cmap='viridis', alpha=0.7)
-        plt.title("Playstyle Clusters (PCA 2D)")
-        plt.xlabel("PCA 1")
-        plt.ylabel("PCA 2")
-        plt.colorbar(scatter, label="Cluster")
-        plt.show()
+    # One-hot encode
+    cluster_dummies = pd.get_dummies(valid_rows["cluster"], prefix="cluster")
+    valid_rows = pd.concat([valid_rows, cluster_dummies], axis=1)
+
+    # Merge back into original dataframe
+    df = df.merge(valid_rows[["Name", "cluster"] + list(cluster_dummies.columns)], on="Name", how="left")
+    df["cluster"] = df["cluster"].fillna(-1).astype(int)  # Optional: treat missing as cluster -1
 
     return df

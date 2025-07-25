@@ -6,7 +6,7 @@ import os
 from .team_needs import get_team_needs
 from .features import add_composite_scores, college_features, noncollege_features
 from .playstyles import compute_playstyle_clusters
-from .weights import college_weights, noncollege_weights, unpack_weights
+from .weights import college_weights, noncollege_weights, unpack_weights, cluster_features
 
 def load_default_weights():
     college_path = "best_college_weights.npy"
@@ -26,12 +26,16 @@ def load_default_weights():
 
     return college_w, noncollege_w
 
-def score_player_for_team(player_row, team_needs, use_composite=True, composite_weight=0.5):
+def score_player_for_team(player_row, team_needs, use_composite=True, composite_weight=0.5, cluster_weights=None):
     score = 0.0
+
+    # Fit-based scoring
     for stat, weight in team_needs.items():
         norm_stat = stat + "_norm"
         if norm_stat in player_row and not pd.isna(player_row[norm_stat]):
             score += weight * player_row[norm_stat]
+
+    # Composite scoring
     if use_composite:
         comps = [
             player_row.get("OffenseScore"),
@@ -41,7 +45,31 @@ def score_player_for_team(player_row, team_needs, use_composite=True, composite_
         comps = [c for c in comps if pd.notna(c)]
         if comps:
             score += composite_weight * np.mean(comps)
+
+    # Cluster-based adjustment
+    if cluster_weights:
+        cluster_score = sum(
+            cluster_weights[i] * player_row.get(f"cluster_{i}", 0)
+            for i in range(len(cluster_weights))
+        )
+        score += cluster_score  # optionally * another weight (e.g. 0.2)
+
     return score
+
+def load_clusters():
+    """Loads saved KMeans cluster models."""
+    from sklearn.cluster import KMeans
+    import joblib
+
+    college_kmeans_path = "../models/kmeans_college.pkl"
+    noncollege_kmeans_path = "../models/kmeans_noncollege.pkl"
+
+    if not os.path.exists(college_kmeans_path) or not os.path.exists(noncollege_kmeans_path):
+        raise FileNotFoundError("❌ Cluster model files not found. Run fit_global_clusters.py first.")
+
+    college_kmeans = joblib.load(college_kmeans_path)
+    noncollege_kmeans = joblib.load(noncollege_kmeans_path)
+    return college_kmeans, noncollege_kmeans
 
 def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_weights=None, noncollege_weights=None):
     if college_weights is None or noncollege_weights is None:
@@ -56,8 +84,12 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
     # Clustering by classification
     college_df = players_df[players_df["classification"] == "College"].copy()
     noncollege_df = players_df[players_df["classification"] != "College"].copy()
-    college_df = compute_playstyle_clusters(college_df, feature_cols=college_features, plot=False)
-    noncollege_df = compute_playstyle_clusters(noncollege_df, feature_cols=noncollege_features, plot=False)
+    
+    college_kmeans, noncollege_kmeans = load_clusters()
+    college_df = compute_playstyle_clusters(college_df, feature_cols=college_features, classification="College")
+    noncollege_df = compute_playstyle_clusters(noncollege_df, feature_cols=noncollege_features, classification="Non-College")
+
+    
     players_df = pd.concat([college_df, noncollege_df], ignore_index=True)
 
     # Composite scores
@@ -88,10 +120,21 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
             ~players_df_normalized["Name"].isin([p["Player"] for p in selected_players])
         ].copy()
 
+        # Apply FitScore with appropriate cluster weights per player
         available_players["FitScore"] = available_players.apply(
-            lambda row: score_player_for_team(row, needs, use_composite=True, composite_weight=composite_weight),
+            lambda row: score_player_for_team(
+                row,
+                needs,
+                use_composite=True,
+                composite_weight=composite_weight,
+                cluster_weights=(
+                    college_weights["clusters"] if row["classification"] == "College"
+                    else noncollege_weights["clusters"]
+                )
+            ),
             axis=1
         )
+
         best_pick = available_players.sort_values("FitScore", ascending=False).iloc[0]
         selected_players.append({
             "Team": team,
@@ -101,6 +144,10 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
 
     sim_df = pd.DataFrame(selected_players)
     actual_df = pd.read_csv(f"../data/raw/{year}/draft_{year}.csv")
+
+    print("Simulated Draft Picks:")
+    print(sim_df)
+
     merged = sim_df.merge(actual_df, left_on="Player", right_on="player", how="left")
     merged["Correct"] = merged["Team"] == merged["team"]
     accuracy = merged["Correct"].mean()
