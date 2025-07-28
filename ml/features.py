@@ -4,7 +4,7 @@ import pandas as pd
 ### --- FEATURE LISTS --- ###
 
 college_features = [
-    "FGA", "FG%", "3PA", "3P%", "2PA", "2P%", "eFG%", "FTA", "FT%", "ORB", "TRB",
+    "Age", "FGA", "FG%", "3PA", "3P%", "2PA", "2P%", "eFG%", "FTA", "FT%", "ORB", "TRB",
     "AST", "STL", "BLK", "TOV", "PF", "PTS", "PER", "TS%", "PProd", "ORB%", "DRB%", 
     "TRB%", "AST%", "STL%", "BLK%", "TOV%", "USG%", "OWS", "DWS", "WS", "OBPM", 
     "DBPM", "BPM", "EFG%", "3PAR", "FTAR", "NBA 3P%", "AST/USG", "AST/TO", "OWS/40", 
@@ -12,7 +12,7 @@ college_features = [
 ]
 
 noncollege_features = [
-    "FGA", "FG%", "3PA", "3P%", "FTA", "FT%", "TRB", "AST", "STL", "BLK", "TOV", 
+    "Age", "FGA", "FG%", "3PA", "3P%", "FTA", "FT%", "TRB", "AST", "STL", "BLK", "TOV", 
     "PF", "PTS", "PER", "TS%", "USG%", "EFG%", "3PAR", "FTAR", "NBA 3P%", 
     "AST/USG", "AST/TO", "ORTG", "DRTG"
 ]
@@ -37,7 +37,7 @@ def compute_composite_score(row, feature_weights):
             score += row[feature] * weight
     return score
 
-
+# NOT USING 
 def normalize_series(series):
     """
     Normalize a pandas Series to a 0–100 range.
@@ -48,6 +48,15 @@ def normalize_series(series):
         return pd.Series(50.0, index=series.index)  # avoid division by zero
     return 100 * (series - min_val) / (max_val - min_val)
 
+def zscore_series(series):
+    """
+    Normalize a pandas Series using z-score scaling.
+    """
+    mean = series.mean()
+    std = series.std()
+    if std == 0:
+        return pd.Series(0.0, index=series.index)
+    return (series - mean) / std
 
 def add_composite_scores(df, college_weights, noncollege_weights):
     """
@@ -66,9 +75,9 @@ def add_composite_scores(df, college_weights, noncollege_weights):
     df["GeneralScore_raw"] = general_scores
 
     # 🧩 Normalize across all players (not per classification)
-    df["OffenseScore"] = normalize_series(df["OffenseScore_raw"])
-    df["DefenseScore"] = normalize_series(df["DefenseScore_raw"])
-    df["GeneralScore"] = normalize_series(df["GeneralScore_raw"])
+    df["OffenseScore"] = zscore_series(df["OffenseScore_raw"])
+    df["DefenseScore"] = zscore_series(df["DefenseScore_raw"])
+    df["GeneralScore"] = zscore_series(df["GeneralScore_raw"])
 
 
     # Optional cleanup

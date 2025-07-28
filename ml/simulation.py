@@ -157,6 +157,23 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
     sim_players = set(sim_df["Player"])
     lottery_hits = actual_lottery_players.intersection(sim_players)
     lottery_accuracy = len(lottery_hits) / 14
+    
+    # After calculating `merged` and accuracy
+    merged["PredictedRank"] = range(1, len(merged) + 1)
+    merged["ActualRank"] = merged["pick"]
+
+    # MRR
+    merged["ReciprocalRank"] = 1 / (abs(merged["PredictedRank"] - merged["ActualRank"]) + 1)
+    mrr = merged["ReciprocalRank"].mean()
+
+    # nDCG@14
+    def dcg(scores):
+        return sum(score / np.log2(i + 2) for i, score in enumerate(scores))
+
+    top14 = merged.sort_values("PredictedRank").head(14)
+    top14["Relevance"] = 15 - top14["ActualRank"]  # Higher pick = higher relevance
+    ideal_relevance = sorted(top14["Relevance"], reverse=True)
+    ndcg = dcg(top14["Relevance"]) / dcg(ideal_relevance) if dcg(ideal_relevance) > 0 else 0
 
     # Composite distribution plot
     if plot_distribution:
@@ -184,4 +201,15 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
 
     print(f"✅ Draft Accuracy (Team Match): {accuracy:.2%}")
     print(f"🎯 Lottery Hit Rate: {lottery_accuracy:.2%}")
-    return sim_df, accuracy, lottery_accuracy
+    return sim_df, accuracy, lottery_accuracy, mrr, ndcg
+
+def average_rank_difference(df_pred, df_true):
+    """
+    Computes the average absolute difference in rank between prediction and actual.
+    """
+    pred_ranks = df_pred.reset_index().reset_index().set_index("Player")["level_0"]
+    true_ranks = df_true.reset_index().reset_index().set_index("Player")["level_0"]
+    
+    common_players = pred_ranks.index.intersection(true_ranks.index)
+    diffs = (pred_ranks.loc[common_players] - true_ranks.loc[common_players]).abs()
+    return diffs.mean()

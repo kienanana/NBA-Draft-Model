@@ -1,19 +1,5 @@
 import numpy as np
-
-# --- Feature Lists (must match features.py) ---
-college_features = [
-    "FGA", "FG%", "3PA", "3P%", "2PA", "2P%", "eFG%", "FTA", "FT%", "ORB", "TRB",
-    "AST", "STL", "BLK", "TOV", "PF", "PTS", "PER", "TS%", "PProd", "ORB%", "DRB%", 
-    "TRB%", "AST%", "STL%", "BLK%", "TOV%", "USG%", "OWS", "DWS", "WS", "OBPM", 
-    "DBPM", "BPM", "EFG%", "3PAR", "FTAR", "NBA 3P%", "AST/USG", "AST/TO", "OWS/40", 
-    "DWS/40", "ORTG", "DRTG"
-]
-
-noncollege_features = [
-    "FGA", "FG%", "3PA", "3P%", "FTA", "FT%", "TRB", "AST", "STL", "BLK", "TOV", 
-    "PF", "PTS", "PER", "TS%", "USG%", "EFG%", "3PAR", "FTAR", "NBA 3P%", 
-    "AST/USG", "AST/TO", "ORTG", "DRTG"
-]
+from .features import college_features, noncollege_features
 
 cluster_features = [f"cluster_{i}" for i in range(8)]
 
