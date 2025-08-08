@@ -1,0 +1,71 @@
+Name,classification,Age,OverallScore,Archetype,Comp1,Comp2,Comp3,Comp1_dist,Comp2_dist,Comp3_dist
+Brandon Miller,College,20.57,7.03,6,Kristaps Porziņģis,Karl-Anthony Towns,Kawhi Leonard,4.241380367070474,4.390529546633518,4.417611793367141
+Anthony Black,College,19.41,5.28,3,Markelle Fultz,OG Anunoby,Victor Oladipo,3.8664172148144034,4.0169692447594185,4.072506733737594
+Jarace Walker,College,19.79,5.08,1,Aleksej Pokusevski,Evan Mobley,Naz Reid,3.7044530180329622,4.1498623007376905,4.1956516136541815
+Taylor Hendricks,College,19.57,5.87,1,Myles Turner,Kristaps Porziņģis,Aleksej Pokusevski,3.615629530316319,3.747104224900997,3.858117692582476
+Cason Wallace,College,19.61,5.05,3,Delon Wright,Markelle Fultz,De'Anthony Melton,3.5432006496728756,3.663083296190686,3.702782438185785
+Jett Howard,College,19.76,3.37,3,Bogdan Bogdanović,Alec Burks,Jerami Grant,2.8497854568121777,2.9500060741499685,3.0641724832810975
+Dereck Lively II,College,19.35,4.57,1,Walker Kessler,Nic Claxton,Isaiah Jackson,5.149681640016433,5.371206264324052,5.6903649233956015
+Gradey Dick,College,19.58,5.09,3,Cameron Johnson,Cameron Johnson,Buddy Hield,2.8411121961925225,2.9278065793890677,2.9733090613982274
+Jordan Hawkins,College,21.14,4.91,3,Alec Burks,Norman Powell,Cameron Johnson,3.366252672685321,3.4180475307107496,3.421632529237145
+Kobe Bufkin,College,19.74,5.2,3,Jalen Williams,Mikal Bridges,De'Anthony Melton,3.0535497686840287,3.0614668592390504,3.1237838284909185
+Keyonte George,College,19.61,4.05,3,Terry Rozier,Kevin Porter Jr.,Tyler Herro,3.230155879139407,3.240741961118508,3.245189812575741
+Jalen Hood-Schifino,College,20.0,2.91,3,Jaden Ivey,Talen Horton-Tucker,Gordon Hayward,2.031030317965891,2.0705039826888845,2.256854905175998
+Jaime Jaquez Jr.,College,22.33,6.44,6,Kawhi Leonard,Bam Adebayo,Cameron Johnson,4.040905022360512,4.545754932468807,4.590258401488742
+Brandin Podziemski,College,20.31,7.51,6,Kawhi Leonard,Paul George,Anthony Edwards,3.755286912034415,4.026013640044849,4.278662836407277
+Cam Whitmore,College,18.95,3.9,3,Cameron Johnson,Buddy Hield,Kelly Oubre Jr.,3.299930483702792,3.422631264983257,3.4234703396215975
+Noah Clowney,College,18.93,4.26,1,Naz Reid,Bol Bol,Jalen Johnson,3.756806970330937,3.905049682137422,3.963104677606866
+Dariq Whitehead,College,18.88,2.7,8,Terence Davis,R.J. Hampton,Josh Richardson,2.508034754629889,2.716844806852619,2.732222094186464
+Kris Murray,College,22.83,5.44,6,Kristaps Porziņģis,Christian Wood,Aaron Gordon,3.44271393565862,3.824155208278824,3.997666120657094
+Olivier-Maxence Prosper,College,20.96,3.45,8,Keita Bates-Diop,Saddiq Bey,Malik Beasley,2.59545017558585,2.610969750574101,2.653235809492895
+Marcus Sasser,College,22.74,6.32,3,Donovan Mitchell,Kawhi Leonard,Cameron Johnson,4.405672833796957,4.4646225276330975,4.48671969402639
+Ben Sheppard,College,21.93,4.65,3,Buddy Hield,Devin Vassell,Franz Wagner,2.4436984915808564,2.4662248417072585,2.8402140506120928
+Nick Smith Jr.,College,19.17,1.45,3,Bones Hyland,Jaylen Nowell,Bones Hyland,2.3059290144038944,2.3544107929092704,2.421985609966304
+Brice Sensabaugh,College,19.64,5.23,6,Mikal Bridges,Lauri Markkanen,Klay Thompson,3.782163746918078,3.930617895364763,3.946931205784257
+Julian Strawther,College,21.17,4.55,3,Buddy Hield,Tobias Harris,Michael Porter Jr.,2.6591008410281836,2.854814252776906,2.8857316861275826
+Kobe Brown,College,23.46,6.29,3,Buddy Hield,Kawhi Leonard,Cameron Johnson,3.365750470780874,3.528301082043572,3.818574584942474
+Jalen Pickett,College,23.66,6.88,6,LeBron James,Josh Giddey,Pascal Siakam,3.6215737369210466,3.8850445014940713,3.945822981643075
+Colby Jones,College,21.06,5.27,3,Markelle Fultz,Scottie Barnes,Kyle Anderson,3.3512107877343476,3.358547013107464,3.3787006461519864
+Julian Phillips,College,19.62,3.18,8,Josh Okogie,Jordan Goodwin,Robert Covington,3.1122152079472847,3.222634688065663,3.318143950895378
+Andre Jackson Jr.,College,21.6,3.83,3,Kyle Anderson,Draymond Green,Kyle Lowry,3.656688304234331,3.760590424624706,4.134131253799324
+Hunter Tyson,College,23.02,5.52,3,Bobby Portis,Nikola Vučević,Buddy Hield,3.696303384468928,3.8301128685853136,3.9583457841342127
+Jordan Walsh,College,19.3,2.23,8,Josh Okogie,John Konchar,Josh Richardson,2.621637601192937,2.6408809779508244,2.6834880084576596
+Mouhamed Gueye,College,20.61,4.31,1,Jusuf Nurkić,Alperen Şengün,Zach Collins,2.7767512957541176,2.973865199791396,3.0387760791910323
+Maxwell Lewis,College,20.9,4.28,3,Kyle Kuzma,Paolo Banchero,Jaylen Brown,2.2730598426292614,2.3112460415674345,2.9333019098212834
+Amari Bailey,College,19.33,4.01,3,Jalen Suggs,Victor Oladipo,Caris LeVert,2.8872339177549335,3.0913436922913387,3.184950355807705
+GG Jackson,College,18.5,2.27,3,Paolo Banchero,Kyle Kuzma,Keldon Johnson,2.8241500742662224,2.989092468804852,3.315916251184527
+Seth Lundy,College,23.21,4.41,8,Cameron Johnson,Michael Porter Jr.,Cameron Johnson,3.170295397346609,3.2808529875619103,3.3262559784689683
+Jordan Miller,College,23.4,5.3,3,Buddy Hield,Cameron Johnson,Cameron Johnson,2.7218957497943976,3.0468217777824416,3.066667922608652
+Emoni Bates,College,19.39,2.95,3,Keldon Johnson,Kyle Kuzma,RJ Barrett,2.0645195159752068,2.379886542696936,2.4860165628739272
+Keyontae Johnson,College,23.07,5.03,3,Jaylen Brown,Buddy Hield,Kelly Olynyk,3.137139671305494,3.1840668190998533,3.428403741881544
+Jalen Wilson,College,22.62,5.27,6,Jaylen Brown,Julius Randle,Paolo Banchero,3.2597327805903804,3.301176539632284,3.4143577601776185
+Toumani Camara,College,23.12,5.67,1,Jusuf Nurkić,Alperen Şengün,Zach Collins,3.2617127751687556,3.380106790534674,3.75729807822004
+Jaylen Clark,College,21.68,5.78,3,Delon Wright,De'Anthony Melton,OG Anunoby,5.1941389358668175,5.516312285055388,5.61456459757813
+Jalen Slawson,College,23.66,7.05,6,Alperen Şengün,Kristaps Porziņģis,Kyle Anderson,4.085835574208224,4.114706343082294,4.542696980585487
+Isaiah Wong,College,22.39,5.09,3,Buddy Hield,Devin Vassell,Mikal Bridges,2.540253443555209,2.645821730487299,2.9898246471153955
+Trayce Jackson-Davis,College,23.32,9.03,6,Anthony Davis,Joel Embiid,Jaren Jackson Jr.,5.861261998545294,6.340276770903191,6.365331622778568
+Chris Livingston,College,19.68,1.48,8,Chuma Okeke,Dorian Finney-Smith,Pat Connaughton,2.364921915059682,2.378335994307394,2.4173290064829915
+Charles Bediako,College,21.28,2.94,1,Nic Claxton,Isaiah Jackson,Robert Williams,4.903314297205006,4.972910070108793,5.0505644076229546
+Colin Castleton,College,23.07,5.86,1,Jaren Jackson Jr.,Myles Turner,Brook Lopez,4.820127171343521,5.551129169574016,5.678436166197227
+Ricky Council IV,College,21.88,3.81,3,Devin Vassell,Franz Wagner,Buddy Hield,2.6044729653908396,2.842987795088892,2.917261976635624
+Adam Flagler,College,23.55,4.46,3,Devin Vassell,Jamal Murray,D'Angelo Russell,3.306921227575863,3.369867900246926,3.399941174259918
+Mike Miles Jr.,College,20.82,4.95,3,Buddy Hield,Franz Wagner,Devin Vassell,3.2456748775207456,3.2556571322466112,3.256929260681909
+Omari Moore,College,22.75,4.69,6,CJ McCollum,Bradley Beal,Cade Cunningham,2.6840895167624184,2.8784674429174193,3.0002612466640497
+Markquis Nowell,College,23.48,7.23,6,Tyrese Haliburton,Fred VanVleet,LaMelo Ball,5.102159369252573,5.15542225602289,5.266845929368307
+Adama Sanogo,College,21.35,7.02,6,Christian Wood,Naz Reid,Nikola Vučević,4.0235638939195,4.221230542268707,4.301328788128987
+Terquavion Smith,College,20.47,3.93,3,Terry Rozier,Devin Vassell,Dejounte Murray,2.4597347933723652,2.756307449911811,2.8745689482548853
+Drew Timme,College,22.78,6.34,6,Zion Williamson,Alperen Şengün,Christian Wood,4.116271408105289,4.317622414571606,4.372212443790199
+Oscar Tshiebwe,College,23.56,6.39,1,Bam Adebayo,Jakob Poeltl,Jakob Poeltl,4.987895697120257,5.109676587056047,5.306531426998395
+Azuolas Tubelis,College,21.24,6.97,6,Nikola Vučević,Bam Adebayo,Alperen Şengün,4.020768895905406,4.024779839706482,4.0311998051598845
+Scoot Henderson,G League,19.37,4.81,6,Russell Westbrook,Russell Westbrook,Cade Cunningham,2.913205586646666,2.9445547282665774,3.131595600051645
+Mojave King,G League,20.94,1.94,8,Pat Connaughton,Santi Aldama,Obi Toppin,3.367503308790979,3.4232628028295333,3.4324579294078013
+Victor Wembanyama,International,19.45,6.94,6,Myles Turner,Anthony Davis,Jaren Jackson Jr.,5.105191636245,5.176152612171685,5.3909850216317015
+Amen Thompson,Overtime Elite,20.38,6.6,6,Anthony Edwards,Paul George,Dejounte Murray,3.849953592383538,4.1948646729511925,4.27022253366203
+Ausar Thompson,Overtime Elite,20.38,6.64,6,Anthony Edwards,OG Anunoby,Paul George,3.990421080462148,4.55469217091911,4.571353525179502
+Bilal Coulibaly,International,18.9,4.57,3,Buddy Hield,De'Anthony Melton,Jalen Williams,3.1796856603197536,3.2492381167692574,3.3047739120762514
+James Nnaji,International,18.85,3.26,1,Goga Bitadze,Jalen Johnson,Chimezie Metu,4.181688209146165,4.188385464786762,4.298154584318471
+Tristan Vukčević,International,20.27,3.85,8,Frank Kaminsky,Dario Šarić,Nickeil Alexander-Walker,3.3434792007425007,3.485700515157298,3.5115494167057664
+Rayan Rupert,International,19.05,2.32,8,Josh Okogie,Jordan Goodwin,Terence Davis,3.281862908361324,3.3317064411635395,3.3682479478629728
+Tarik Biberovic,International,22.39,1.87,8,Frank Kaminsky,Obi Toppin,Lindy Waters III,3.2963402573084633,3.3884384058529884,3.4318095237906308
+Malcolm Cazalon,International,21.81,4.53,3,Buddy Hield,De'Anthony Melton,Cameron Johnson,3.3413665895953453,3.3782636771493832,3.450007435092456
+Nadir Hifi,International,20.93,4.96,3,Buddy Hield,Devin Vassell,Franz Wagner,3.1122137652575494,3.3192886460760778,3.349349101616684

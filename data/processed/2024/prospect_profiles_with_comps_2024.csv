@@ -1,0 +1,75 @@
+Name,classification,Age,OverallScore,Archetype,Comp1,Comp2,Comp3,Comp1_dist,Comp2_dist,Comp3_dist
+Reed Sheppard,College,19.99,7.12,6,Alex Caruso,Scotty Pippen Jr.,Jalen Suggs,4.4740342861726345,4.569362758489425,5.2133691554809936
+Stephon Castle,College,19.63,4.3,7,Cole Anthony,Max Strus,Markelle Fultz,2.3818981449535093,2.7638615357554044,2.8749619636380452
+Donovan Clingan,College,20.32,6.68,1,Daniel Gafford,Walker Kessler,Chet Holmgren,5.1971977986126845,5.259757913980985,5.270712479620104
+Rob Dillingham,College,19.46,4.9,6,Collin Sexton,Khris Middleton,Terry Rozier,2.55527486623646,2.7304528746194556,2.7605621304870516
+Zach Edey,College,22.1,9.19,1,Anthony Davis,Kristaps Porziņģis,Chet Holmgren,5.305073605486923,5.6827363188769215,5.704135260216916
+Cody Williams,College,19.58,3.93,7,Ayo Dosunmu,OG Anunoby,Naz Reid,2.7151245848148133,2.716154806453772,2.7203610605943105
+Devin Carter,College,22.26,7.01,6,Alperen Şengün,Scottie Barnes,Kawhi Leonard,3.717454645755882,4.006377811609432,4.071451769555369
+Carlton Carrington,College,18.92,3.95,6,Zach LaVine,Tyler Herro,Cole Anthony,2.255469219534596,2.2603818614442828,2.283404090302331
+Kel'el Ware,College,20.17,5.84,1,Chet Holmgren,Myles Turner,Evan Mobley,3.0546756184215367,3.3503987961177986,3.3950283096573632
+Jared McCain,College,20.33,5.22,7,Donte DiVincenzo,Simone Fontecchio,Cameron Johnson,2.6697213784835574,2.839437014159044,3.065126994830278
+Dalton Knecht,College,23.17,5.47,6,CJ McCollum,Jerami Grant,Naz Reid,3.706474588936125,3.866605149791022,3.958157200572909
+Tristan da Silva,College,23.1,5.05,6,Donte DiVincenzo,Tobias Harris,Paul George,2.2843343594310195,2.691914601535516,2.7205266701815924
+Ja'Kobe Walter,College,19.79,3.82,7,Donte DiVincenzo,Cameron Johnson,Bogdan Bogdanović,2.485023311862294,2.6179663021532087,2.6671338193041376
+Jaylon Tyson,College,21.55,5.32,6,Anthony Edwards,Paolo Banchero,Zion Williamson,2.3864454192247644,2.491676778377968,2.6939267870203603
+Yves Missi,College,20.1,4.67,1,Jonathan Isaac,Myles Turner,Paul Reed,3.0876007267976724,3.4343753688773124,3.703864012522667
+DaRon Holmes II,College,21.85,7.3,1,Kristaps Porziņģis,Chet Holmgren,Anthony Davis,3.914338037148683,3.9543115204443353,4.0815357095176195
+Kyshawn George,College,20.52,3.19,7,Kyle Lowry,Nickeil Alexander-Walker,Kyle Lowry,2.230654816560236,2.2894879698548256,2.372293724726376
+Dillon Jones,College,22.64,7.02,6,Donovan Mitchell,Alperen Şengün,De'Aaron Fox,3.678386631358916,3.807743135223232,4.023448119984768
+Terrence Shannon Jr.,College,23.89,6.02,6,Kawhi Leonard,CJ McCollum,Paul George,3.5156491839899213,3.5892890016644214,3.597385672814436
+Ryan Dunn,College,21.45,4.34,1,Walker Kessler,Daniel Gafford,Daniel Gafford,4.3899158822280695,4.860413595345676,4.86512786133285
+Isaiah Collier,College,19.7,4.45,6,Scotty Pippen Jr.,Darius Garland,Dejounte Murray,2.479232699684836,2.7996275240993183,3.0376470448035775
+Baylor Scheierman,College,23.73,5.98,6,Jayson Tatum,Pascal Siakam,Alperen Şengün,3.3528827768562923,3.46347929483958,3.5150672169023056
+Jonathan Mogbo,College,22.64,6.53,1,Amen Thompson,Alperen Şengün,Jusuf Nurkić,4.4171084125570585,4.586457143385031,4.6721015827883665
+Kyle Filipowski,College,20.62,6.29,1,Evan Mobley,Scottie Barnes,Bam Adebayo,3.548933607024662,3.831191999025587,3.8731305657974646
+Tyler Kolek,College,23.23,6.51,6,LaMelo Ball,LeBron James,Scotty Pippen Jr.,3.6172662874574617,3.652630998361973,3.797048510833634
+Johnny Furphy,College,19.53,3.9,7,Royce O'Neale,Moses Moody,Nikola Jović,2.6054947509115314,2.692558707038142,2.7268507920625833
+Ajay Mitchell,College,21.99,5.58,6,Desmond Bane,Anthony Edwards,Dejounte Murray,1.9501661804999864,2.2513030641056337,2.4010493227909455
+Jaylen Wells,College,20.82,4.08,7,Simone Fontecchio,Cameron Johnson,Trey Murphy III,2.647950816300848,2.6722715551745817,2.7042666190160487
+Oso Ighodaro,College,21.97,4.67,1,Amen Thompson,Jarrett Allen,Evan Mobley,3.624081160231812,3.942448960281304,4.03036450870072
+Adem Bona,College,21.23,4.74,1,Goga Bitadze,Chet Holmgren,Nic Claxton,4.942561421688643,4.968682062528571,5.0102422990170075
+KJ Simpson,College,21.87,6.73,6,Donovan Mitchell,Jimmy Butler,Kyrie Irving,3.0718508334265517,3.1740091056120847,3.288294927409573
+Pelle Larsson,College,23.32,4.86,6,Donte DiVincenzo,Jrue Holiday,Kelly Olynyk,2.938900366273782,2.972787974289494,3.018233805593305
+Jamal Shead,College,21.99,6.09,6,Scotty Pippen Jr.,Donovan Mitchell,Fred VanVleet,4.795358074561142,5.012026677807558,5.268867663940468
+Cam Christie,College,18.91,3.1,7,Buddy Hield,Cameron Johnson,Buddy Hield,1.7026112390898558,1.7031039478243797,1.7344947691158317
+Antonio Reeves,College,23.58,4.88,7,Simone Fontecchio,Immanuel Quickley,Klay Thompson,2.629007951230674,2.7443791652451557,2.8594439106206093
+Harrison Ingram,College,21.56,4.58,7,Jalen Johnson,Tari Eason,Royce O'Neale,3.333193037439302,3.350711476656607,3.6318634126554614
+Tristen Newton,College,23.15,5.92,6,Khris Middleton,Josh Giddey,Russell Westbrook,3.365201015634774,3.423140873184886,3.5257155896420844
+Enrique Freeman,College,23.89,7.04,1,Anthony Davis,Evan Mobley,Chet Holmgren,3.622283037559624,3.750179286720845,4.322151452256092
+Quinten Post,College,24.25,6.27,1,Kristaps Porziņģis,Evan Mobley,Scottie Barnes,3.415704141376048,3.459962773255435,3.5418603448381214
+Cam Spencer,College,24.21,6.33,6,Donte DiVincenzo,Jimmy Butler,Mike Conley,3.477435291521666,3.861000211873912,3.944039378780859
+Anton Watson,College,23.7,5.83,1,Jalen Johnson,Donte DiVincenzo,Tari Eason,3.3722359346836077,3.548189727979902,3.653900857560364
+Bronny James,College,19.7,1.41,7,Markelle Fultz,Jordan Goodwin,Malachi Flynn,1.9286662939854695,2.000394819220604,2.0006665244468262
+Kevin McCullar,College,23.27,5.22,6,Anthony Edwards,Paul George,Dejounte Murray,2.753544432411389,2.7831238632526794,2.8869503155628857
+Trey Alexander,College,21.13,5.14,6,Franz Wagner,Khris Middleton,Desmond Bane,2.4951569929914443,2.496340602558829,2.519039504909676
+Reece Beekman,College,22.7,5.62,6,Scotty Pippen Jr.,Donovan Mitchell,De'Aaron Fox,4.187989033858267,4.431226081448167,4.739504478030508
+Jalen Bridges,College,23.1,4.85,7,Trey Murphy III,Donte DiVincenzo,Simone Fontecchio,3.009853890946101,3.0792958315278236,3.248910348501005
+Isaiah Crawford,College,22.63,6.28,1,Alex Caruso,Jaren Jackson Jr.,OG Anunoby,4.327464442199253,4.332307988231051,4.504322488692182
+N'Faly Dante,College,22.67,7.17,1,Evan Mobley,Anthony Davis,Daniel Gafford,5.039730138027186,5.126696012696756,5.162813834901585
+Justin Edwards,College,20.51,2.95,7,Moses Moody,Simone Fontecchio,Simone Fontecchio,1.7362189398599237,1.8160847224373091,2.034206165291384
+Boogie Ellis,College,23.52,3.82,6,Donte DiVincenzo,Devin Vassell,Bogdan Bogdanović,2.072308726293987,2.4321982157631976,2.467664794372628
+Allen Flanigan,College,23.16,4.06,6,Dalano Banton,Russell Westbrook,Franz Wagner,2.606701116944844,2.811469327530981,2.823566741339876
+PJ Hall,College,22.33,5.3,1,Jaren Jackson Jr.,Kristaps Porziņģis,Naz Reid,3.1101561004380893,3.213221660030906,3.542206114073074
+Keshad Johnson,College,22.99,4.85,1,Naz Reid,Jalen Johnson,Donte DiVincenzo,2.8648465276431727,3.2200949317220116,3.2467740128893987
+Isaac Jones,College,23.94,4.67,1,Jarrett Allen,Deandre Ayton,Jonas Valančiūnas,3.354864112597982,3.63097421917457,3.7360599910871377
+Judah Mintz,College,20.95,4.72,6,Marcus Smart,De'Aaron Fox,Scotty Pippen Jr.,2.5964540601215114,2.6626180689778365,3.1322836413166883
+Zyon Pullin,College,23.3,4.64,6,Malcolm Brogdon,Immanuel Quickley,Terry Rozier,2.211811968750371,2.2559946421720714,2.299314673946153
+Ron Holland,G League,18.95,5.45,6,De'Aaron Fox,Donovan Mitchell,Paul George,3.8483227209399793,4.084555078382588,4.326282079224832
+Matas Buzelis,G League,19.68,4.34,1,Chet Holmgren,Myles Turner,Kristaps Porziņģis,3.381878000182668,3.6076379897995743,3.6142189730521896
+Tyler Smith,G League,19.63,4.28,1,Naz Reid,Santi Aldama,Paul Reed,2.149460803037296,3.0823297668330945,3.221759064573513
+Zaccharie Risacher,International,19.2,4.36,7,Donte DiVincenzo,Naz Reid,Cole Anthony,2.7643586586988937,2.9923049967408204,3.009923148976058
+Alexandre Sarr,International,19.15,4.29,1,Naz Reid,Santi Aldama,Aleksej Pokusevski,3.461800162963337,3.5486858320701504,3.8081511722584898
+Tidjane Salaun,International,18.86,3.84,7,Donte DiVincenzo,Cole Anthony,Royce O'Neale,2.854856280141018,3.140693601560689,3.1777804160859113
+Nikola Topić,International,18.86,5.58,6,Khris Middleton,Austin Reaves,Franz Wagner,3.0975913165872173,3.1696525093563723,3.1938898174713164
+AJ Johnson,International,19.55,1.65,2,Kenneth Lofton Jr.,Jett Howard,Shake Milton,3.3397755997111056,3.425379558178987,3.556943762590859
+Pacome Dadiet,International,18.9,3.79,7,Nikola Jović,Trendon Watford,Jarace Walker,2.895250842050492,2.9560850030378427,3.0078369066488784
+Juan Núñez,International,20.04,4.57,6,Donte DiVincenzo,Tre Mann,Russell Westbrook,3.4984271600130006,3.5123158223763937,3.552099203884921
+Bobi Klintman,International,21.29,4.25,7,Donte DiVincenzo,Cole Anthony,Naz Reid,2.8239474764173753,2.941961131294559,3.0674975132242848
+Nikola Djurisic,International,20.32,4.89,6,Jaylen Brown,Franz Wagner,Donte DiVincenzo,3.4343384250870677,3.450321045848862,3.461654198164319
+Melvin Ajinca,International,19.98,3.6,7,Jarace Walker,Nikola Jović,Dario Šarić,2.9005663061091553,2.904242626054426,3.023857873378517
+Ulrich Chomche,International,18.47,6.78,1,Scottie Barnes,Jaren Jackson Jr.,Kevin Durant,5.20057530668558,5.840973289726928,5.912586574710791
+Ariel Hukporti,International,22.19,4.44,1,Naz Reid,Santi Aldama,Evan Mobley,3.5740161750223693,3.673700288230924,3.82860249890907
+Trentyn Flowers,International,19.28,3.05,7,Nikola Jović,Shake Milton,Kenneth Lofton Jr.,3.07842522862301,3.160068772895362,3.2114399004189647
+Ousmane N'Diaye,International,20.25,3.25,7,Jaylin Williams,Nikola Jović,Jarace Walker,2.9245964928488064,3.042188295193676,3.0735251158965693
+Mantas Rubstavicius,International,22.12,4.37,7,Aaron Wiggins,David Duke Jr.,Naji Marshall,3.0394543666043554,3.07607521567881,3.1186355636410186
