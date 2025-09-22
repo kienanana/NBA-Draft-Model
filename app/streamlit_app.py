@@ -7,8 +7,11 @@ import streamlit as st
 # Local imports
 import sys
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(PROJECT_ROOT)
+os.chdir(PROJECT_ROOT)  # <- TEMP hotfix so "../data/..." resolves on Cloud
 
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+    
 from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft, load_default_weights
 
