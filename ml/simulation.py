@@ -3,22 +3,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from pathlib import Path
+
 from .team_needs import get_team_needs
 from .features import add_composite_scores, college_features, noncollege_features
 from .playstyles import compute_playstyle_clusters
 from .weights import college_weights, noncollege_weights, unpack_weights, cluster_features
 
-def load_default_weights():
-    college_path = "best_college_weights.npy"
-    noncollege_path = "best_noncollege_weights.npy"
+# --- Centralised paths (resolve from repo root; allow optional env overrides) ---
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_PROCESSED_ROOT = Path(os.getenv("DRAFTLAB_DATA_DIR", PROJECT_ROOT / "data" / "processed"))
+DATA_RAW_ROOT       = Path(os.getenv("DRAFTLAB_DATA_RAW_DIR", PROJECT_ROOT / "data" / "raw"))
+WEIGHTS_ROOT        = Path(os.getenv("DRAFTLAB_WEIGHTS_DIR", PROJECT_ROOT / "weights"))
+MODELS_ROOT         = Path(os.getenv("DRAFTLAB_MODELS_DIR", PROJECT_ROOT / "models"))
+# -------------------------------------------------------------------------------
 
-    if os.path.exists(college_path):
+def load_default_weights():
+    # Prefer weights/ directory; fall back to current working directory (original behaviour)
+    college_path = WEIGHTS_ROOT / "best_college_weights.npy"
+    if not college_path.exists():
+        college_path = Path("best_college_weights.npy")
+
+    noncollege_path = WEIGHTS_ROOT / "best_noncollege_weights.npy"
+    if not noncollege_path.exists():
+        noncollege_path = Path("best_noncollege_weights.npy")
+
+    if college_path.exists():
         college_array = np.load(college_path)
         college_w = unpack_weights(college_array, is_college=True)
     else:
         college_w = unpack_weights(np.ones(len(college_features) * 3), is_college=True)
 
-    if os.path.exists(noncollege_path):
+    if noncollege_path.exists():
         noncollege_array = np.load(noncollege_path)
         noncollege_w = unpack_weights(noncollege_array, is_college=False)
     else:
@@ -61,10 +77,10 @@ def load_clusters():
     from sklearn.cluster import KMeans
     import joblib
 
-    college_kmeans_path = "../models/kmeans_college.pkl"
-    noncollege_kmeans_path = "../models/kmeans_noncollege.pkl"
+    college_kmeans_path = MODELS_ROOT / "kmeans_college.pkl"
+    noncollege_kmeans_path = MODELS_ROOT / "kmeans_noncollege.pkl"
 
-    if not os.path.exists(college_kmeans_path) or not os.path.exists(noncollege_kmeans_path):
+    if not college_kmeans_path.exists() or not noncollege_kmeans_path.exists():
         raise FileNotFoundError("❌ Cluster model files not found. Run fit_global_clusters.py first.")
 
     college_kmeans = joblib.load(college_kmeans_path)
@@ -75,10 +91,12 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
     if college_weights is None or noncollege_weights is None:
         college_weights, noncollege_weights = load_default_weights()
         
-    # Load data
-    players_df = pd.read_csv(f"../data/processed/{year}/draftpool_stats_{year}.csv")
-    draft_order = pd.read_csv(f"../data/processed/{year}/draft_{year}_team_stats.csv")["team"].tolist()
-    team_stats_df = pd.read_csv(f"../data/processed/{year}/draft_{year}_team_stats.csv")
+    # Load data (paths now resolved from repo root)
+    players_csv = DATA_PROCESSED_ROOT / str(year) / f"draftpool_stats_{year}.csv"
+    team_stats_csv = DATA_PROCESSED_ROOT / str(year) / f"draft_{year}_team_stats.csv"
+    players_df = pd.read_csv(players_csv)
+    draft_order = pd.read_csv(team_stats_csv)["team"].tolist()
+    team_stats_df = pd.read_csv(team_stats_csv)
     team_needs = get_team_needs(team_stats_df)
 
     # Clustering by classification
@@ -89,7 +107,6 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
     college_df = compute_playstyle_clusters(college_df, feature_cols=college_features, classification="College")
     noncollege_df = compute_playstyle_clusters(noncollege_df, feature_cols=noncollege_features, classification="Non-College")
 
-    
     players_df = pd.concat([college_df, noncollege_df], ignore_index=True)
 
     # Composite scores
@@ -143,7 +160,7 @@ def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_w
         })
 
     sim_df = pd.DataFrame(selected_players)
-    actual_df = pd.read_csv(f"../data/raw/{year}/draft_{year}.csv")
+    actual_df = pd.read_csv(DATA_RAW_ROOT / str(year) / f"draft_{year}.csv")
 
     print("Simulated Draft Picks:")
     print(sim_df)
