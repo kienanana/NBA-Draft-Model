@@ -28,7 +28,7 @@ Two key surfaces:
    - Optional **Upside** and **UpdatedOverall** scores
    - **NBA comps & archetype** when comps CSV exists
 
-2. **Draft Simulation (2024 demo)**
+2. **Draft Simulation (2020-2024)**
    - Uses **current weight files** when present, otherwise defaults
    - Reports **Team-match accuracy**, **Lottery hit rate**, **MRR**, and **nDCG@14**
 
