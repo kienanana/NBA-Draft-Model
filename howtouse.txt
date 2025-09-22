@@ -1,4 +1,4 @@
 run:
-conda env create -f environment.yml
+conda env create -f env/environment.dev.yml
 conda activate nba-draft
 python -m ipykernel install --user --name nba-draft --display-name "Python (nba-draft)"
