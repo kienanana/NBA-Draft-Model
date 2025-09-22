@@ -12,7 +12,7 @@ Predict the NBA lottery (picks 1–14) by matching teams to prospects using hist
 - **ML modules** (`ml/`) for profiles, simulation, weights, playstyles, etc.
 - **Data & weights** (`data/processed/<year>/…`, `weights/…`)
 - **Notebooks** for scraping / exploration (`notebooks/`)
-- **Reproducible env** via `requirements.txt` / `environment.yml`
+- **Reproducible env** via `requirements.txt` / `environment.dev.yml`
 
 ---
 
