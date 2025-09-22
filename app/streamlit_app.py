@@ -15,7 +15,7 @@ from ml.simulation import simulate_draft, load_default_weights
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
 
-tab1, tab2 = st.tabs(["Prospect Profiles", "Draft Simulation (2024)"])
+tab1, tab2 = st.tabs(["Prospect Profiles", "Draft Simulation"])
 
 # -------------------- TAB 1: PROFILES --------------------
 with tab1:
