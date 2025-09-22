@@ -84,30 +84,46 @@ with tab1:
 
 # -------------------- TAB 2: DRAFT SIM --------------------
 with tab2:
-    st.subheader("Run 2024 Draft Simulation")
-    st.caption("Uses the current weight files if present; otherwise falls back to defaults inside ml.simulation.load_default_weights().")
+    st.subheader("Run Draft Simulation")
+    st.caption(
+        "Select a year (2020–2024). Uses current weight files if present; "
+        "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
+    )
 
+    sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
     composite_weight = st.slider("Composite weight", 0.0, 1.0, 0.20, 0.05)
 
-    run = st.button("Run Simulation")
+    run = st.button(f"Run Simulation ({sim_year})")
     if run:
         try:
-            college_w, noncollege_w = load_default_weights()  # your helper that checks ../weights
-            # NOTE: expects ../data/processed/2024/... to exist
+            college_w, noncollege_w = load_default_weights()  # checks weights/ as you implemented
+
             sim_df, acc, lottery, mrr, ndcg = simulate_draft(
-                year=2024,
+                year=sim_year,
                 composite_weight=composite_weight,
                 plot_distribution=False,
                 college_weights=college_w,
                 noncollege_weights=noncollege_w
             )
 
-            st.success(f"Done! Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}")
+            st.success(
+                f"Done for {sim_year}! "
+                f"Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | "
+                f"MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}"
+            )
+
+            # Show picks starting at 1
+            sim_df.index = sim_df.index + 1
             st.dataframe(sim_df)
 
             # Export
             csv = sim_df.to_csv(index=False).encode("utf-8")
-            st.download_button("Download Simulated Draft (CSV)", data=csv, file_name="simulated_draft_2024.csv", mime="text/csv")
+            st.download_button(
+                "Download Simulated Draft (CSV)",
+                data=csv,
+                file_name=f"simulated_draft_{sim_year}.csv",
+                mime="text/csv"
+            )
 
         except FileNotFoundError as e:
             st.error(str(e))
