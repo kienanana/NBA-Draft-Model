@@ -222,6 +222,51 @@ with tab2:
             file_name=f"clusters_{vis_year}.csv",
             mime="text/csv",
         )
+        
+        # --- Players by cluster (filterable table) ---
+        st.markdown("#### Players in each cluster")
+
+        # Cluster multi-select (defaults to all present)
+        cluster_options = sorted([int(x) for x in df_plot["Cluster"].dropna().unique()])
+        chosen_clusters = st.multiselect(
+            "Show clusters", cluster_options, default=cluster_options, key="clusters_to_list"
+        )
+
+        name_query = st.text_input("Filter by player name (optional)", "")
+
+        # Build a tidy table with useful columns
+        base_cols = ["Name", "classification", "Cluster"]
+        stat_pref = ["Age", "PTS", "AST", "TRB", "TS%", "OBPM", "DBPM", "BPM",
+                     "OffenseScore", "DefenseScore", "GeneralScore"]
+        extra_cols = [c for c in stat_pref if c in df_plot.columns]
+        cols_to_show = base_cols + extra_cols
+
+        table = df_plot.loc[:, [c for c in cols_to_show if c in df_plot.columns]].copy()
+
+        # Apply filters
+        if chosen_clusters:
+            table = table[table["Cluster"].isin(chosen_clusters)]
+        if name_query:
+            table = table[table["Name"].str.contains(name_query, case=False, na=False)]
+
+        table = table.sort_values(["Cluster", "classification", "Name"]).reset_index(drop=True)
+
+        st.dataframe(table, use_container_width=True, height=360)
+
+        # Optional: split view per cluster in expanders (handy for long lists)
+        with st.expander("View by cluster (expandable)", expanded=False):
+            for c in chosen_clusters:
+                sub = table[table["Cluster"] == c]
+                st.markdown(f"**Cluster {c}** — {len(sub)} players")
+                st.dataframe(sub.drop(columns=["Cluster"]), use_container_width=True)
+
+        # Download filtered table
+        st.download_button(
+            "Download filtered table (CSV)",
+            data=table.to_csv(index=False).encode("utf-8"),
+            file_name=f"clusters_{vis_year}_filtered.csv",
+            mime="text/csv",
+        )
 
         st.caption(
             "Note: PC1/PC2 are computed separately per cohort (College vs Non-College) for better local structure; "
