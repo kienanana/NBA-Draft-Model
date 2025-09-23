@@ -281,21 +281,20 @@ with tab3:
         "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
     )
 
-    st.markdown(
-        """
-        **What does the _Composite weight_ do?**  
-        Each pick scores player–team pairs by combining **team fit** (how a player's normalized stats match the team's needs) and a **BPA** (best-player-available) pull from the player's composite scores.  
-        Formally (simplified):
+    st.markdown(r"""
+    **What does the _Composite weight_ do?**  
+    Each pick scores player–team pairs by combining **team fit** and a **BPA** pull.
 
-        \\[
-        \\text{Score} = \\underbrace{\\sum_{s \\in \\text{needs}} w_s\\,\\text{stat}_{s,\\,\\text{norm}}}_{\\text{team fit}}\\; +\\;
-        \\underbrace{\\text{composite\\_weight} \\times \\text{mean}(\\text{Offense},\\text{Defense},\\text{General})}_{\\text{BPA pull}}\\; +\\; \\text{cluster adjustment}
-        \\]
+    $$
+    \text{Score} =
+    \underbrace{\sum_{s\in \text{needs}} w_s\,\text{stat}_{s,\text{norm}}}_{\text{team fit}}
+    + \underbrace{\text{composite\_weight}\times \text{mean}(\text{Offense},\text{Defense},\text{General})}_{\text{BPA pull}}
+    + \text{cluster adjustment}
+    $$
 
-        - Lower values → more **team need** driven.  
-        - Higher values → more **BPA** pull.
-        """
-    ) 
+    - Lower values → more **team need** driven.  
+    - Higher values → more **BPA** pull.
+    """)
     
     sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
     composite_weight = st.slider("Composite weight", 0.0, 1.0, 0.20, 0.05)
