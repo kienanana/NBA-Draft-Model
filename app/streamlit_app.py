@@ -3,6 +3,10 @@ import io
 import numpy as np
 import pandas as pd
 import streamlit as st
+import altair as alt
+from pathlib import Path
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 # Local imports
 import sys
@@ -11,11 +15,13 @@ sys.path.append(PROJECT_ROOT)
 
 from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft, load_default_weights
+from ml.simulation import load_clusters  # ensures cluster models exist
+from ml.features import college_features, noncollege_features
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
 
-tab1, tab2 = st.tabs(["Prospect Profiles", "Draft Simulation"])
+tab1, tab2, tab3 = st.tabs(["Prospect Profiles", "Draft Simulation", "Clustering (Interactive)"])
 
 # -------------------- TAB 1: PROFILES --------------------
 with tab1:
@@ -90,6 +96,22 @@ with tab2:
         "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
     )
 
+    st.markdown(
+        """
+        **What does the _Composite weight_ do?**  
+        Each pick scores player–team pairs by combining **team fit** (how a player's normalized stats match the team's needs) and a **BPA** (best-player-available) pull from the player's composite scores.  
+        Formally (simplified):
+
+        \\[
+        \\text{Score} = \\underbrace{\\sum_{s \\in \\text{needs}} w_s\\,\\text{stat}_{s,\\,\\text{norm}}}_{\\text{team fit}}\\; +\\;
+        \\underbrace{\\text{composite\\_weight} \\times \\text{mean}(\\text{Offense},\\text{Defense},\\text{General})}_{\\text{BPA pull}}\\; +\\; \\text{cluster adjustment}
+        \\]
+
+        - Lower values → more **team need** driven.  
+        - Higher values → more **BPA** pull.
+        """
+    ) 
+    
     sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
     composite_weight = st.slider("Composite weight", 0.0, 1.0, 0.20, 0.05)
 
@@ -129,3 +151,143 @@ with tab2:
             st.error(str(e))
         except Exception as e:
             st.exception(e)
+
+# -------------------- TAB 3: CLUSTERING (INTERACTIVE) --------------------
+with tab3:
+    st.subheader("Global Playstyle Clusters — Interactive View")
+    st.caption(
+        "Select a year (2020–2024). This projects players into 2D using PCA for visualization, "
+        "colors by cluster, and shows hover tooltips. Clusters are computed via the global models."
+    )
+
+    vis_year = st.selectbox("Draft year (clusters)", [2020, 2021, 2022, 2023, 2024], index=4, key="cluster_year")
+    subset = st.multiselect(
+        "Which cohorts to show?",
+        options=["College", "Non-College"],
+        default=["College", "Non-College"]
+    )
+
+    # Load draft pool for the year
+    pool_path = os.path.join(PROJECT_ROOT, "data", "processed", str(vis_year), f"draftpool_stats_{vis_year}.csv")
+    if not os.path.exists(pool_path):
+        st.error(f"Missing: {pool_path}")
+    else:
+        df = pd.read_csv(pool_path).copy()
+
+        # make sure cluster models are present (raises if not)
+        try:
+            _ = load_clusters()
+        except FileNotFoundError as e:
+            st.error(str(e))
+            st.stop()
+
+        # Helper: compute clusters using our existing function
+        def _cluster_by_group(df_in, classification: str, feature_cols):
+            from ml.playstyles import compute_playstyle_clusters  # local import to avoid circulars
+            sub = df_in[df_in["classification"].eq(classification)].copy()
+            if sub.empty:
+                return sub
+            try:
+                sub = compute_playstyle_clusters(sub, feature_cols=feature_cols, classification=classification)
+            except Exception as e:
+                st.warning(f"Clustering failed for {classification}: {e}")
+            return sub
+
+        # build the clustered frame(s)
+        frames = []
+        if "College" in subset:
+            frames.append(_cluster_by_group(df, "College", college_features))
+        if "Non-College" in subset:
+            frames.append(_cluster_by_group(df, "Non-College", noncollege_features))
+        dfc = pd.concat([f for f in frames if f is not None], ignore_index=True) if frames else pd.DataFrame()
+
+        if dfc.empty:
+            st.info("No rows to show for the selected filters.")
+            st.stop()
+
+        # Derive a readable cluster label column (many pipelines output cluster_0..k probs)
+        cluster_cols = [c for c in dfc.columns if c.startswith("cluster_") and dfc[c].dtype != "O"]
+        if "cluster_label" in dfc.columns:
+            dfc["Cluster"] = dfc["cluster_label"].astype(int)
+        elif cluster_cols:
+            # Argmax over cluster probability/indicator columns
+            dfc["Cluster"] = dfc[cluster_cols].astype(float).values.argmax(axis=1).astype(int)
+        elif "cluster" in dfc.columns:
+            dfc["Cluster"] = dfc["cluster"].astype(int)
+        else:
+            # Fallback
+            dfc["Cluster"] = -1
+
+        # 2D projection (PCA) per cohort, then concatenate (scales may differ slightly between cohorts)
+        def _pca_embed(frame: pd.DataFrame, feature_cols):
+            X = frame[feature_cols].copy()
+            X = X.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+            X = np.asarray(X, dtype=float)
+            Xs = StandardScaler().fit_transform(X)
+            comp = PCA(n_components=2, random_state=0).fit_transform(Xs)
+            out = frame.copy()
+            out["pc1"] = comp[:, 0]
+            out["pc2"] = comp[:, 1]
+            return out
+
+        parts = []
+        if "College" in subset and not dfc[dfc["classification"] == "College"].empty:
+            parts.append(_pca_embed(dfc[dfc["classification"] == "College"], college_features))
+        if "Non-College" in subset and not dfc[dfc["classification"] != "College"].empty:
+            parts.append(_pca_embed(dfc[dfc["classification"] != "College"], noncollege_features))
+
+        df_plot = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+
+        if df_plot.empty:
+            st.info("Nothing to visualize after PCA.")
+            st.stop()
+
+        # Interactive scatter with hover tooltips
+        tooltips = [
+            alt.Tooltip("Name:N", title="Player"),
+            alt.Tooltip("classification:N", title="Cohort"),
+            alt.Tooltip("Cluster:N"),
+        ]
+        # Add a few common stat columns to tooltip if present
+        for col in ["Age", "PTS", "AST", "TRB", "TS%", "OBPM", "DBPM", "BPM"]:
+            if col in df_plot.columns:
+                tooltips.append(alt.Tooltip(f"{col}:Q"))
+
+        chart = (
+            alt.Chart(df_plot)
+            .mark_circle(size=70, opacity=0.85)
+            .encode(
+                x=alt.X("pc1:Q", title="PC1"),
+                y=alt.Y("pc2:Q", title="PC2"),
+                color=alt.Color("Cluster:N", legend=alt.Legend(title="Cluster")),
+                shape=alt.Shape("classification:N", legend=alt.Legend(title="Cohort")),
+                tooltip=tooltips,
+            )
+            .interactive()
+            .properties(height=520)
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+        # Cluster summary table
+        st.markdown("#### Cluster summary")
+        summary = (
+            df_plot.groupby(["classification", "Cluster"])["Name"]
+            .count()
+            .reset_index()
+            .rename(columns={"Name": "Players"})
+            .sort_values(["classification", "Cluster"])
+        )
+        st.dataframe(summary, use_container_width=True)
+
+        csv_bytes = df_plot[["Name", "classification", "Cluster", "pc1", "pc2"]].to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download clustered points (CSV)",
+            data=csv_bytes,
+            file_name=f"clusters_{vis_year}.csv",
+            mime="text/csv",
+        )
+
+        st.caption(
+            "Note: PC1/PC2 are computed separately per cohort (College vs Non-College) for better local structure; "
+            "axes aren’t directly comparable across cohorts."
+        )
