@@ -15,13 +15,13 @@ sys.path.append(PROJECT_ROOT)
 
 from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft, load_default_weights
-from ml.simulation import load_clusters  # ensures cluster models exist
+from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
 
-tab1, tab2, tab3 = st.tabs(["Prospect Profiles", "Draft Simulation", "Clustering (Interactive)"])
+tab1, tab2, tab3 = st.tabs(["Prospect Profiles", "Clustering", "Draft Simulation"])
 
 # -------------------- TAB 1: PROFILES --------------------
 with tab1:
@@ -87,82 +87,18 @@ with tab1:
                 file_name=f"{name.replace(' ','_')}_profile_{year}.csv",
                 mime="text/csv"
             )
-
-# -------------------- TAB 2: DRAFT SIM --------------------
+            
+# -------------------- TAB 2: CLUSTERING (INTERACTIVE) --------------------
 with tab2:
-    st.subheader("Run Draft Simulation")
+    st.subheader("Global Playstyle Clusters")
     st.caption(
-        "Select a year (2020–2024). Uses current weight files if present; "
-        "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
-    )
-
-    st.markdown(
-        """
-        **What does the _Composite weight_ do?**  
-        Each pick scores player–team pairs by combining **team fit** (how a player's normalized stats match the team's needs) and a **BPA** (best-player-available) pull from the player's composite scores.  
-        Formally (simplified):
-
-        \\[
-        \\text{Score} = \\underbrace{\\sum_{s \\in \\text{needs}} w_s\\,\\text{stat}_{s,\\,\\text{norm}}}_{\\text{team fit}}\\; +\\;
-        \\underbrace{\\text{composite\\_weight} \\times \\text{mean}(\\text{Offense},\\text{Defense},\\text{General})}_{\\text{BPA pull}}\\; +\\; \\text{cluster adjustment}
-        \\]
-
-        - Lower values → more **team need** driven.  
-        - Higher values → more **BPA** pull.
-        """
-    ) 
-    
-    sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
-    composite_weight = st.slider("Composite weight", 0.0, 1.0, 0.20, 0.05)
-
-    run = st.button(f"Run Simulation ({sim_year})")
-    if run:
-        try:
-            college_w, noncollege_w = load_default_weights()  # checks weights/ as you implemented
-
-            sim_df, acc, lottery, mrr, ndcg = simulate_draft(
-                year=sim_year,
-                composite_weight=composite_weight,
-                plot_distribution=False,
-                college_weights=college_w,
-                noncollege_weights=noncollege_w
-            )
-
-            st.success(
-                f"Done for {sim_year}! "
-                f"Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | "
-                f"MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}"
-            )
-
-            # Show picks starting at 1
-            sim_df.index = sim_df.index + 1
-            st.dataframe(sim_df)
-
-            # Export
-            csv = sim_df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "Download Simulated Draft (CSV)",
-                data=csv,
-                file_name=f"simulated_draft_{sim_year}.csv",
-                mime="text/csv"
-            )
-
-        except FileNotFoundError as e:
-            st.error(str(e))
-        except Exception as e:
-            st.exception(e)
-
-# -------------------- TAB 3: CLUSTERING (INTERACTIVE) --------------------
-with tab3:
-    st.subheader("Global Playstyle Clusters — Interactive View")
-    st.caption(
-        "Select a year (2020–2024). This projects players into 2D using PCA for visualization, "
+        "Select a year (2020–2024). Draft Class is then projected into 2D using PCA for visualisation, "
         "colors by cluster, and shows hover tooltips. Clusters are computed via the global models."
     )
 
     vis_year = st.selectbox("Draft year (clusters)", [2020, 2021, 2022, 2023, 2024], index=4, key="cluster_year")
     subset = st.multiselect(
-        "Which cohorts to show?",
+        "Which classifications to show?",
         options=["College", "Non-College"],
         default=["College", "Non-College"]
     )
@@ -291,3 +227,67 @@ with tab3:
             "Note: PC1/PC2 are computed separately per cohort (College vs Non-College) for better local structure; "
             "axes aren’t directly comparable across cohorts."
         )
+
+# -------------------- TAB 3: DRAFT SIM --------------------
+with tab3:
+    st.subheader("Run Draft Simulation")
+    st.caption(
+        "Select a year (2020–2024). Uses current weight files if present; "
+        "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
+    )
+
+    st.markdown(
+        """
+        **What does the _Composite weight_ do?**  
+        Each pick scores player–team pairs by combining **team fit** (how a player's normalized stats match the team's needs) and a **BPA** (best-player-available) pull from the player's composite scores.  
+        Formally (simplified):
+
+        \\[
+        \\text{Score} = \\underbrace{\\sum_{s \\in \\text{needs}} w_s\\,\\text{stat}_{s,\\,\\text{norm}}}_{\\text{team fit}}\\; +\\;
+        \\underbrace{\\text{composite\\_weight} \\times \\text{mean}(\\text{Offense},\\text{Defense},\\text{General})}_{\\text{BPA pull}}\\; +\\; \\text{cluster adjustment}
+        \\]
+
+        - Lower values → more **team need** driven.  
+        - Higher values → more **BPA** pull.
+        """
+    ) 
+    
+    sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
+    composite_weight = st.slider("Composite weight", 0.0, 1.0, 0.20, 0.05)
+
+    run = st.button(f"Run Simulation ({sim_year})")
+    if run:
+        try:
+            college_w, noncollege_w = load_default_weights()  # checks weights/ as you implemented
+
+            sim_df, acc, lottery, mrr, ndcg = simulate_draft(
+                year=sim_year,
+                composite_weight=composite_weight,
+                plot_distribution=False,
+                college_weights=college_w,
+                noncollege_weights=noncollege_w
+            )
+
+            st.success(
+                f"Done for {sim_year}! "
+                f"Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | "
+                f"MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}"
+            )
+
+            # Show picks starting at 1
+            sim_df.index = sim_df.index + 1
+            st.dataframe(sim_df)
+
+            # Export
+            csv = sim_df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "Download Simulated Draft (CSV)",
+                data=csv,
+                file_name=f"simulated_draft_{sim_year}.csv",
+                mime="text/csv"
+            )
+
+        except FileNotFoundError as e:
+            st.error(str(e))
+        except Exception as e:
+            st.exception(e)
