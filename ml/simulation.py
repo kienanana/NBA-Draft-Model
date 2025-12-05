@@ -8,7 +8,13 @@ from pathlib import Path
 from .team_needs import get_team_needs
 from .features import add_composite_scores, college_features, noncollege_features
 from .playstyles import compute_playstyle_clusters
-from .weights import college_weights, noncollege_weights, unpack_weights, cluster_features
+from .weights import (
+    college_weights,
+    noncollege_weights,
+    unpack_weights,
+    cluster_features,
+    normalized_weight_array,
+)
 
 # --- Centralised paths (resolve from repo root; allow optional env overrides) ---
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +23,23 @@ DATA_RAW_ROOT       = Path(os.getenv("DRAFTLAB_DATA_RAW_DIR", PROJECT_ROOT / "da
 WEIGHTS_ROOT        = Path(os.getenv("DRAFTLAB_WEIGHTS_DIR", PROJECT_ROOT / "weights"))
 MODELS_ROOT         = Path(os.getenv("DRAFTLAB_MODELS_DIR", PROJECT_ROOT / "models"))
 # -------------------------------------------------------------------------------
+
+def _prepare_weight_array(array, is_college):
+    expected_len = (
+        len(college_features) * 3 + len(cluster_features)
+        if is_college
+        else len(noncollege_features) * 3 + len(cluster_features)
+    )
+    if array.size > expected_len:
+        return array[:expected_len]
+
+    if array.size < expected_len:
+        upgraded = normalized_weight_array(is_college=is_college)
+        upgraded[:array.size] = array
+        return upgraded
+
+    return array
+
 
 def load_default_weights():
     # Prefer weights/ directory; fall back to current working directory (original behaviour)
@@ -29,16 +52,17 @@ def load_default_weights():
         noncollege_path = Path("best_noncollege_weights.npy")
 
     if college_path.exists():
-        college_array = np.load(college_path)
-        college_w = unpack_weights(college_array, is_college=True)
+        college_array = _prepare_weight_array(np.load(college_path), is_college=True)
     else:
-        college_w = unpack_weights(np.ones(len(college_features) * 3), is_college=True)
+        college_array = normalized_weight_array(is_college=True)
 
     if noncollege_path.exists():
-        noncollege_array = np.load(noncollege_path)
-        noncollege_w = unpack_weights(noncollege_array, is_college=False)
+        noncollege_array = _prepare_weight_array(np.load(noncollege_path), is_college=False)
     else:
-        noncollege_w = unpack_weights(np.ones(len(noncollege_features) * 3), is_college=False)
+        noncollege_array = normalized_weight_array(is_college=False)
+
+    college_w = unpack_weights(college_array, is_college=True)
+    noncollege_w = unpack_weights(noncollege_array, is_college=False)
 
     return college_w, noncollege_w
 
