@@ -38,15 +38,16 @@ def compute_composite_score(row, feature_weights):
     return score
 
 # NOT USING 
-def normalize_series(series):
+def minmax_series(series):
     """
-    Normalize a pandas Series to a 0–100 range.
+    Normalize a pandas Series to a 0–1 range.
     """
     min_val = series.min()
     max_val = series.max()
     if max_val - min_val == 0:
-        return pd.Series(50.0, index=series.index)  # avoid division by zero
-    return 100 * (series - min_val) / (max_val - min_val)
+        return pd.Series(0.5, index=series.index, dtype=float)  # avoid division by zero
+    scaled = (series - min_val) / (max_val - min_val)
+    return scaled.clip(0.0, 1.0)
 
 def zscore_series(series):
     """
@@ -75,9 +76,9 @@ def add_composite_scores(df, college_weights, noncollege_weights):
     df["GeneralScore_raw"] = general_scores
 
     # 🧩 Normalize across all players (not per classification)
-    df["OffenseScore"] = zscore_series(df["OffenseScore_raw"])
-    df["DefenseScore"] = zscore_series(df["DefenseScore_raw"])
-    df["GeneralScore"] = zscore_series(df["GeneralScore_raw"])
+    df["OffenseScore"] = minmax_series(df["OffenseScore_raw"]).fillna(0.5)
+    df["DefenseScore"] = minmax_series(df["DefenseScore_raw"]).fillna(0.5)
+    df["GeneralScore"] = minmax_series(df["GeneralScore_raw"]).fillna(0.5)
 
 
     # Optional cleanup

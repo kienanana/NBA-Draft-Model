@@ -17,6 +17,7 @@ from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft, load_default_weights
 from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
+from ml.weights import unpack_weights, normalized_weight_array
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
@@ -281,6 +282,24 @@ with tab3:
         "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
     )
 
+    weights_dir = Path(PROJECT_ROOT) / "weights"
+    best_college_file = weights_dir / "best_college_weights.npy"
+    best_noncollege_file = weights_dir / "best_noncollege_weights.npy"
+    has_best = best_college_file.exists() and best_noncollege_file.exists()
+
+    weight_mode = st.radio(
+        "Weight source",
+        [
+            "Optimized best model (best_*_weights.npy)",
+            "Baseline normalized weights",
+        ],
+        index=0 if has_best else 1,
+        help="Pick which weight set to feed into the simulator.",
+    )
+
+    if weight_mode.startswith("Optimized") and not has_best:
+        st.warning("Optimized weights not found in weights/. Falling back to baseline normalized weights.")
+
     st.markdown(r"""
     **What does the _Composite weight_ do?**  
     Each pick scores player–team pairs by combining **team fit** and a **BPA** pull.
@@ -302,7 +321,13 @@ with tab3:
     run = st.button(f"Run Simulation ({sim_year})")
     if run:
         try:
-            college_w, noncollege_w = load_default_weights()  # checks weights/ as you implemented
+            if weight_mode.startswith("Optimized") and has_best:
+                college_w, noncollege_w = load_default_weights()
+                weight_label = "optimized best weights"
+            else:
+                college_w = unpack_weights(normalized_weight_array(is_college=True), is_college=True)
+                noncollege_w = unpack_weights(normalized_weight_array(is_college=False), is_college=False)
+                weight_label = "baseline normalized weights"
 
             sim_df, acc, lottery, mrr, ndcg = simulate_draft(
                 year=sim_year,
@@ -313,7 +338,7 @@ with tab3:
             )
 
             st.success(
-                f"Done for {sim_year}! "
+                f"Done for {sim_year} using {weight_label}! "
                 f"Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | "
                 f"MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}"
             )

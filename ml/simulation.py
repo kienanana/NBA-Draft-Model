@@ -72,8 +72,9 @@ def score_player_for_team(player_row, team_needs, use_composite=True, composite_
     # Fit-based scoring
     for stat, weight in team_needs.items():
         norm_stat = stat + "_norm"
-        if norm_stat in player_row and not pd.isna(player_row[norm_stat]):
-            score += weight * player_row[norm_stat]
+        value = player_row.get(norm_stat)
+        if pd.notna(value):
+            score += weight * max(value, 0.0)
 
     # Composite scoring
     if use_composite:
@@ -84,17 +85,22 @@ def score_player_for_team(player_row, team_needs, use_composite=True, composite_
         ]
         comps = [c for c in comps if pd.notna(c)]
         if comps:
-            score += composite_weight * np.mean(comps)
+            score += composite_weight * float(np.mean(comps))
 
     # Cluster-based adjustment
     if cluster_weights:
-        cluster_score = sum(
-            cluster_weights[i] * player_row.get(f"cluster_{i}", 0)
-            for i in range(len(cluster_weights))
-        )
+        cluster_score = 0.0
+        for i in range(len(cluster_weights)):
+            cluster_val = player_row.get(f"cluster_{i}", 0.0)
+            if pd.isna(cluster_val):
+                cluster_val = 0.0
+            cluster_score += cluster_weights[i] * cluster_val
         score += cluster_score  # optionally * another weight (e.g. 0.2)
 
-    return score
+    if not np.isfinite(score):
+        return 0.0
+
+    return max(score, 0.0)
 
 def load_clusters():
     """Loads saved KMeans cluster models."""
