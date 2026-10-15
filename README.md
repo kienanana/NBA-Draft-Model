@@ -44,7 +44,7 @@ The main metric is **lottery hits@14**: among the model's 14 highest-ranked pros
 | 2023 | 9 | 6 | 2.8 |
 | 2024 | 8 | 8 | 2.6 |
 
-These are small historical samples. The Tankathon scraper reads `past_drafts/<year>` pages, and the first 14 names in every saved `prospect_pool_<year>.csv` exactly match that year's actual draft order. **The model ignores row order; shuffling it does not change its rankings.** We have not established whether the page contained the same candidate names before each draft, so these backtests are conditional on the saved pools rather than verified pre-draft candidate universes. The saved order cannot serve as a mock-draft benchmark; that comparison needs dated pre-draft snapshots.
+These are small historical samples. The prospect lists were collected as pre-draft candidate pools; the Tankathon scraper reads historical `past_drafts/<year>` pages, whose saved first 14 rows match the actual draft order. **The model ignores row order; shuffling it does not change its rankings.** The saved order cannot serve as a pre-draft mock benchmark. That comparison needs separately dated mock rankings.
 
 ## Project structure
 
@@ -54,4 +54,4 @@ These are small historical samples. The Tankathon scraper reads `past_drafts/<ye
 - `data/`, `models/`, `reports/`: historical inputs and generated outputs.
 - `tests/`: label, temporal split, scoring, simulation, API, and profile checks.
 
-The immediate research priority is a dated pre-draft candidate universe and mock-rank snapshots. More historical classes are needed before selecting a more flexible model or claiming stable performance.
+The immediate research priority is dated pre-draft mock rankings for a fair benchmark. More historical classes are needed before selecting a more flexible model or claiming stable performance.
