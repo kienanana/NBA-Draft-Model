@@ -6,4 +6,9 @@ pillow
 scikit-learn
 seaborn
 altair
+requests>=2,<3
+fastapi>=0.115,<0.121
+pydantic>=2.9,<2.12
+uvicorn>=0.30,<1
+httpx>=0.27,<1
 pytest>=8,<10

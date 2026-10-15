@@ -141,11 +141,11 @@ def build_profiles(year: int):
     out = pd.concat([draft[["Name","classification","Age"]], radar_pg_scaled, radar_adv_scaled], axis=1)
     out["OverallScore"] = overall10
 
-    # Try to join Upside/UpdatedOverall if it exists
+    # Upside is an archived enrichment; the active profile score is calculated above.
     up_path = os.path.join(PROJECT_ROOT, "data", "processed", str(year), f"prospect_profiles_with_upside_{year}.csv")
     if os.path.exists(up_path):
         up = pd.read_csv(up_path)
-        out = out.merge(up[["Name","UpsideScore","UpdatedOverall"]], on="Name", how="left")
+        out = out.merge(up[["Name","UpsideScore"]], on="Name", how="left")
 
     return out, cols_pg, cols_adv
 

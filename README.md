@@ -8,11 +8,51 @@ Predict the NBA lottery (picks 1–14) by matching teams to prospects using hist
 
 ## ✨ What’s inside
 
-- **Streamlit app** for profiles & simulation (`app/streamlit_app.py`)
-- **ML modules** (`ml/`) for profiles, simulation, weights, playstyles, etc.
-- **Data & weights** (`data/processed/<year>/…`, `weights/…`)
+- **Streamlit app** for profiles, simulation, candidate rankings and comparisons (`app/streamlit_app.py`)
+- **FastAPI service** for historical team rankings (`api/main.py`)
+- **Shared scoring engine** with contribution breakdowns and missing-data warnings (`ml/scoring.py`)
+- **Data & legacy weights** (`data/processed/<year>/…`, `weights/…`)
 - **Notebooks** for scraping / exploration (`notebooks/`)
-- **Reproducible env** via `requirements.txt` / `environment.dev.yml`
+- **Environment and tests** via `requirements.txt`, `env/environment.dev.yml`, and `tests/`
+
+## Run locally
+
+From the repository root, create the environment once and install the current
+application dependencies:
+
+```bash
+conda env create -f env/environment.dev.yml
+conda activate nba-draft
+python -m pip install -r requirements.txt
+python -m pytest -q tests
+```
+
+Start the API and Streamlit in separate terminals with the environment active:
+
+```bash
+python -m uvicorn api.main:app --reload
+```
+
+```bash
+python -m streamlit run app/streamlit_app.py
+```
+
+The ranking view uses `http://127.0.0.1:8000` by default. Set
+`DRAFTLAB_API_URL` if the API runs elsewhere. FastAPI's interactive docs are at
+`http://127.0.0.1:8000/docs`.
+
+## Ranking API
+
+`GET /api/v1/teams?year=2024` lists teams for the selected historical draft.
+`GET /api/v1/rankings?year=2024&team=Atlanta%20Hawks` returns ranked candidates,
+their total scores, every additive contribution, missing-data warnings, team
+need weights, and the scoring version. `limit` (1–100, default 100) and
+`composite_weight` (0–1, default 0.2) are optional query parameters.
+
+Invalid requests return **422**, an unknown team returns **404**, and unavailable
+historical files return **503**. The [scoring contract](docs/scoring-contract.md)
+documents direction, scaling, missing values, and evaluation. The API currently
+uses historical year and team selection; it does not accept custom team stats.
 
 ---
 
@@ -20,17 +60,21 @@ Predict the NBA lottery (picks 1–14) by matching teams to prospects using hist
 
 **Objective.** Simulate the lottery part of the NBA Draft: for each pick, score all remaining team–prospect pairs, select the best fit, remove the player, and continue until pick 14.
 
-Two key surfaces:
+Three key surfaces:
 
 1. **Prospect Profiles**
    - Per-game & advanced stat **radar charts**
    - **Z-score → min–max** scaling for fair visual comparison
-   - Optional **Upside** and **UpdatedOverall** scores
+   - Optional historical **Upside** score
    - **NBA comps & archetype** when comps CSV exists
 
 2. **Draft Simulation (2020-2024)**
    - Uses the direction-aware **baseline-v1** scorer
    - Reports **Team-match accuracy**, **Lottery hit rate**, **first-hit reciprocal rank**, and **nDCG@14**
+
+3. **Team Rankings (2020-2024)**
+   - Ranks all candidates for a selected historical team through the API
+   - Explains a candidate's score and compares two candidates' contributions
 
 ---
 
