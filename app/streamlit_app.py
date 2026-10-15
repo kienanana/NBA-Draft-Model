@@ -14,10 +14,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(PROJECT_ROOT)
 
 from ml.profiles import get_prospect_profile, build_profiles
-from ml.simulation import simulate_draft, load_default_weights
+from ml.simulation import simulate_draft
 from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
-from ml.weights import unpack_weights, normalized_weight_array
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
@@ -278,41 +277,22 @@ with tab2:
 with tab3:
     st.subheader("Run Draft Simulation")
     st.caption(
-        "Select a year (2020–2024). Uses current weight files if present; "
-        "otherwise falls back to defaults inside ml.simulation.load_default_weights()."
+        "Select a year (2020–2024). Uses the explainable baseline-v1 scorer. "
+        "Historical optimized weights require retraining for this scoring contract."
     )
-
-    weights_dir = Path(PROJECT_ROOT) / "weights"
-    best_college_file = weights_dir / "best_college_weights.npy"
-    best_noncollege_file = weights_dir / "best_noncollege_weights.npy"
-    has_best = best_college_file.exists() and best_noncollege_file.exists()
-
-    weight_mode = st.radio(
-        "Weight source",
-        [
-            "Optimized best model (best_*_weights.npy)",
-            "Baseline normalized weights",
-        ],
-        index=0 if has_best else 1,
-        help="Pick which weight set to feed into the simulator.",
-    )
-
-    if weight_mode.startswith("Optimized") and not has_best:
-        st.warning("Optimized weights not found in weights/. Falling back to baseline normalized weights.")
 
     st.markdown(r"""
     **What does the _Composite weight_ do?**  
-    Each pick scores player–team pairs by combining **team fit** and a **BPA** pull.
+    Each pick combines direction-aware team needs with a baseline prospect-quality pull.
 
     $$
     \text{Score} =
     \underbrace{\sum_{s\in \text{needs}} w_s\,\text{stat}_{s,\text{norm}}}_{\text{team fit}}
-    + \underbrace{\text{composite\_weight}\times \text{mean}(\text{Offense},\text{Defense},\text{General})}_{\text{BPA pull}}
-    + \text{cluster adjustment}
+    + \underbrace{\text{composite\_weight}\times \text{mean}(\text{TS\%},\text{PER},\text{AST/TO},\text{Age})}_{\text{prospect quality}}
     $$
 
-    - Lower values → more **team need** driven.  
-    - Higher values → more **BPA** pull.
+    Lower Age, TOV% and DRtg are better. Missing player values receive a neutral
+    value of 0.5 and appear in ranking warnings.
     """)
     
     sim_year = st.selectbox("Draft year", [2020, 2021, 2022, 2023, 2024], index=4)
@@ -321,26 +301,16 @@ with tab3:
     run = st.button(f"Run Simulation ({sim_year})")
     if run:
         try:
-            if weight_mode.startswith("Optimized") and has_best:
-                college_w, noncollege_w = load_default_weights()
-                weight_label = "optimized best weights"
-            else:
-                college_w = unpack_weights(normalized_weight_array(is_college=True), is_college=True)
-                noncollege_w = unpack_weights(normalized_weight_array(is_college=False), is_college=False)
-                weight_label = "baseline normalized weights"
-
-            sim_df, acc, lottery, mrr, ndcg = simulate_draft(
+            sim_df, acc, lottery, first_hit_rr, ndcg = simulate_draft(
                 year=sim_year,
                 composite_weight=composite_weight,
                 plot_distribution=False,
-                college_weights=college_w,
-                noncollege_weights=noncollege_w
             )
 
             st.success(
-                f"Done for {sim_year} using {weight_label}! "
+                f"Done for {sim_year} using baseline-v1! "
                 f"Team-match accuracy: {acc:.2%} | Lottery hit rate: {lottery:.2%} | "
-                f"MRR: {mrr:.3f} | nDCG@14: {ndcg:.3f}"
+                f"First-hit reciprocal rank: {first_hit_rr:.3f} | nDCG@14: {ndcg:.3f}"
             )
 
             # Show picks starting at 1
