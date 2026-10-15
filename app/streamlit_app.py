@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import altair as alt
-from pathlib import Path
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -17,11 +16,12 @@ from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft
 from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
+from app.api_client import RankingAPIError, get_rankings, get_teams
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
 
-tab1, tab2, tab3 = st.tabs(["Prospect Profiles", "Clustering", "Draft Simulation"])
+tab1, tab2, tab3, tab4 = st.tabs(["Prospect Profiles", "Clustering", "Draft Simulation", "Team Rankings"])
 
 # -------------------- TAB 1: PROFILES --------------------
 with tab1:
@@ -213,7 +213,7 @@ with tab2:
             .rename(columns={"Name": "Players"})
             .sort_values(["classification", "Cluster"])
         )
-        st.dataframe(summary, use_container_width=True)
+        st.dataframe(summary, width="stretch")
 
         csv_bytes = df_plot[["Name", "classification", "Cluster", "pc1", "pc2"]].to_csv(index=False).encode("utf-8")
         st.download_button(
@@ -251,14 +251,14 @@ with tab2:
 
         table = table.sort_values(["Cluster", "classification", "Name"]).reset_index(drop=True)
 
-        st.dataframe(table, use_container_width=True, height=360)
+        st.dataframe(table, width="stretch", height=360)
 
         # Optional: split view per cluster in expanders (handy for long lists)
         with st.expander("View by cluster (expandable)", expanded=False):
             for c in chosen_clusters:
                 sub = table[table["Cluster"] == c]
                 st.markdown(f"**Cluster {c}** — {len(sub)} players")
-                st.dataframe(sub.drop(columns=["Cluster"]), use_container_width=True)
+                st.dataframe(sub.drop(columns=["Cluster"]), width="stretch")
 
         # Download filtered table
         st.download_button(
@@ -330,3 +330,88 @@ with tab3:
             st.error(str(e))
         except Exception as e:
             st.exception(e)
+
+# -------------------- TAB 4: EXPLAINABLE TEAM RANKINGS --------------------
+with tab4:
+    st.subheader("Team candidate rankings")
+    st.caption(
+        "Rank a historical draft class for one team's needs. Scores come from the "
+        "FastAPI service and show the contribution of every scored stat."
+    )
+    ranking_year = st.selectbox("Draft year (rankings)", [2020, 2021, 2022, 2023, 2024], index=4)
+    try:
+        ranking_teams = get_teams(ranking_year)
+    except RankingAPIError as exc:
+        st.error(str(exc))
+        ranking_teams = []
+
+    if ranking_teams:
+        ranking_team = st.selectbox("Team", ranking_teams)
+        ranking_weight = st.slider("Prospect quality weight", 0.0, 1.0, 0.2, 0.05)
+        try:
+            ranking = get_rankings(ranking_year, ranking_team, ranking_weight)
+        except RankingAPIError as exc:
+            st.error(str(exc))
+        else:
+            st.caption(
+                f"Model: {ranking['model_version']} · {ranking['total_candidates']} candidates · "
+                "stats scaled within college and non-college groups"
+            )
+            if ranking["warnings"]:
+                st.warning("; ".join(ranking["warnings"]))
+            with st.expander("Team needs used for this ranking"):
+                if ranking["team_needs"]:
+                    needs_table = pd.DataFrame([
+                        {"Stat": stat, "Need weight": weight}
+                        for stat, weight in ranking["team_needs"].items()
+                    ])
+                    st.dataframe(needs_table, hide_index=True, width="stretch")
+                else:
+                    st.info("No below-average team stats were identified; only prospect quality contributes.")
+
+            candidates = ranking["candidates"]
+            candidate_names = [candidate["player"] for candidate in candidates]
+            table = pd.DataFrame([{
+                "Rank": candidate["rank"],
+                "Prospect": candidate["player"],
+                "Cohort": candidate["classification"],
+                "Score": candidate["score"],
+                "Warnings": len(candidate["warnings"]),
+            } for candidate in candidates])
+            st.dataframe(table, hide_index=True, width="stretch")
+
+            if candidates:
+                st.markdown("#### Explain a score")
+                selected_name = st.selectbox("Prospect to explain", candidate_names)
+                selected = next(candidate for candidate in candidates if candidate["player"] == selected_name)
+                st.metric("Total score", f"{selected['score']:.3f}")
+                contribution_table = pd.DataFrame([
+                    {"Contribution": stat.replace("team_fit:", "Team fit · ").replace("quality:", "Quality · "),
+                     "Points": points}
+                    for stat, points in selected["contributions"].items()
+                ])
+                st.bar_chart(contribution_table.set_index("Contribution"))
+                if selected["warnings"]:
+                    st.warning("; ".join(selected["warnings"]))
+
+            if len(candidates) >= 2:
+                st.markdown("#### Compare two candidates")
+                left, right = st.columns(2)
+                with left:
+                    first_name = st.selectbox("First candidate", candidate_names, index=0)
+                with right:
+                    second_options = [name for name in candidate_names if name != first_name]
+                    second_name = st.selectbox("Second candidate", second_options)
+                first = next(candidate for candidate in candidates if candidate["player"] == first_name)
+                second = next(candidate for candidate in candidates if candidate["player"] == second_name)
+                comparison = pd.DataFrame({
+                    "Contribution": sorted(set(first["contributions"]) | set(second["contributions"])),
+                })
+                comparison[first_name] = comparison["Contribution"].map(first["contributions"]).fillna(0.0)
+                comparison[second_name] = comparison["Contribution"].map(second["contributions"]).fillna(0.0)
+                comparison["Difference"] = comparison[first_name] - comparison[second_name]
+                st.dataframe(comparison, hide_index=True, width="stretch")
+                st.caption(f"Total: {first_name} {first['score']:.3f} · {second_name} {second['score']:.3f}")
+                for candidate in (first, second):
+                    if candidate["warnings"]:
+                        st.warning(f"{candidate['player']}: {'; '.join(candidate['warnings'])}")
