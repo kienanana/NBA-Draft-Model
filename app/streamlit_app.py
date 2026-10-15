@@ -48,7 +48,7 @@ with tab1:
             st.markdown("### Scores")
             colA, colB, colC = st.columns(3)
             with colA:
-                st.metric("Overall (/10)", f"{row.get('UpdatedOverall', row.get('OverallScore')):.2f}")
+                st.metric("Profile score (/10)", f"{row['OverallScore']:.2f}")
             with colB:
                 if row.get("UpsideScore") is not None and not pd.isna(row.get("UpsideScore")):
                     st.metric("Upside (/10)", f"{row['UpsideScore']:.2f}")

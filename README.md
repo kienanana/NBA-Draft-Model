@@ -65,7 +65,7 @@ Three key surfaces:
 1. **Prospect Profiles**
    - Per-game & advanced stat **radar charts**
    - **Z-score → min–max** scaling for fair visual comparison
-   - Optional **Upside** and **UpdatedOverall** scores
+   - Optional historical **Upside** score
    - **NBA comps & archetype** when comps CSV exists
 
 2. **Draft Simulation (2020-2024)**
