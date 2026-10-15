@@ -35,6 +35,14 @@ def test_forecast_uses_only_later_years_and_does_not_require_results(monkeypatch
     assert ranked["model_score"].is_monotonic_decreasing
     assert 0 < ranked["model_score"].min() < ranked["model_score"].max() < 1
 
+    original_pool = load_pool(2024)
+    monkeypatch.setattr(
+        "ml.lottery_inclusion.load_pool",
+        lambda year: original_pool.sample(frac=1, random_state=42),
+    )
+    shuffled = forecast(2024, artifact)
+    assert ranked["Name"].tolist() == shuffled["Name"].tolist()
+
 
 def test_backtest_trains_only_on_prior_years():
     report = backtest()

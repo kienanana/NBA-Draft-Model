@@ -427,8 +427,8 @@ with tab5:
         "2020–2023 and selects its top 14 prospects; team matches do not affect training."
     )
     st.info(
-        "This is a historical replay. Prospect lists came from Tankathon's past-drafts "
-        "pages, so these results are not prospective pre-draft accuracy."
+        "This is a historical replay using Tankathon past-drafts candidate lists. "
+        "The model ignores list order, but pre-draft pool membership has not been verified."
     )
     if not MODEL_PATH.exists() or not BACKTEST_PATH.exists():
         st.warning("Model files are missing. Run `python -m ml.lottery_inclusion` from the project root.")
