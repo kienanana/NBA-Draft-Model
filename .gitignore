@@ -1,2 +1,6 @@
 Miniforge3-MacOSX-arm64.sh
 .DS_Store
+TODO.local.md
+__pycache__/
+*.py[cod]
+.pytest_cache/

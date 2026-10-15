@@ -29,8 +29,8 @@ Two key surfaces:
    - **NBA comps & archetype** when comps CSV exists
 
 2. **Draft Simulation (2020-2024)**
-   - Uses **current weight files** when present, otherwise defaults
-   - Reports **Team-match accuracy**, **Lottery hit rate**, **MRR**, and **nDCG@14**
+   - Uses the direction-aware **baseline-v1** scorer
+   - Reports **Team-match accuracy**, **Lottery hit rate**, **first-hit reciprocal rank**, and **nDCG@14**
 
 ---
 
@@ -66,10 +66,11 @@ Processed outputs:
 
 ### Draft simulation
 - **Stateful process:** pick-by-pick, removing selected players
-- **Fit features:** team positional needs × position, shooting/defense/rebounding needs × metrics, **timeline fit** (age), mock-delta
-- **Score blending:** separate weight vectors for **college** vs **non-college** cohorts
-- **Evaluation metrics:** Team-match accuracy, Lottery hit rate, MRR, nDCG@14
+- **Fit features:** team needs in ORB%, DRB%, TOV%, TS%, ORtg and DRtg, scored against direction-aware prospect metrics
+- **Score blending:** team fit plus a small prospect-quality score from TS%, PER, AST/TO and age
+- **Missing data:** neutral 0.5 contribution with a candidate warning; normalization within college and non-college cohorts
+- **Evaluation metrics:** Team-match accuracy, Lottery hit rate, first-hit reciprocal rank, nDCG@14
 
 ### Optimisation & experiments
-- **Bayesian optimisation** of weight vectors (`scikit-optimize`)
-- **Cluster-aware adjustments** to down-weight archetypes that overperform in college but under-translate to the NBA
+- Earlier **Bayesian optimisation** and cluster-adjustment work remains in notebooks and weight files. Those weights were fitted to the old scoring contract and are not used by baseline-v1. They need retraining before use in live rankings.
+- The current historical results are a demonstration, not held-out predictive performance. A time-based evaluation is a next step.

@@ -1,262 +1,136 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+"""Historical lottery simulation built on the shared ranking engine."""
+
 import os
 from pathlib import Path
 
-from .team_needs import get_team_needs
-from .features import add_composite_scores, college_features, noncollege_features
-from .playstyles import compute_playstyle_clusters
-from .weights import (
-    college_weights,
-    noncollege_weights,
-    unpack_weights,
-    cluster_features,
-    normalized_weight_array,
-)
+import numpy as np
+import pandas as pd
 
-# --- Centralised paths (resolve from repo root; allow optional env overrides) ---
+from .scoring import rank_candidates
+
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_PROCESSED_ROOT = Path(os.getenv("DRAFTLAB_DATA_DIR", PROJECT_ROOT / "data" / "processed"))
-DATA_RAW_ROOT       = Path(os.getenv("DRAFTLAB_DATA_RAW_DIR", PROJECT_ROOT / "data" / "raw"))
-WEIGHTS_ROOT        = Path(os.getenv("DRAFTLAB_WEIGHTS_DIR", PROJECT_ROOT / "weights"))
-MODELS_ROOT         = Path(os.getenv("DRAFTLAB_MODELS_DIR", PROJECT_ROOT / "models"))
-# -------------------------------------------------------------------------------
-
-def _prepare_weight_array(array, is_college):
-    expected_len = (
-        len(college_features) * 3 + len(cluster_features)
-        if is_college
-        else len(noncollege_features) * 3 + len(cluster_features)
-    )
-    if array.size > expected_len:
-        return array[:expected_len]
-
-    if array.size < expected_len:
-        upgraded = normalized_weight_array(is_college=is_college)
-        upgraded[:array.size] = array
-        return upgraded
-
-    return array
+DATA_RAW_ROOT = Path(os.getenv("DRAFTLAB_DATA_RAW_DIR", PROJECT_ROOT / "data" / "raw"))
+MODELS_ROOT = Path(os.getenv("DRAFTLAB_MODELS_DIR", PROJECT_ROOT / "models"))
+SUPPORTED_YEARS = (2020, 2021, 2022, 2023, 2024)
 
 
-def load_default_weights():
-    # Prefer weights/ directory; fall back to current working directory (original behaviour)
-    college_path = WEIGHTS_ROOT / "best_college_weights.npy"
-    if not college_path.exists():
-        college_path = Path("best_college_weights.npy")
+def load_historical_data(year: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return the prospect pool and lottery-order team context for one year."""
+    if year not in SUPPORTED_YEARS:
+        raise ValueError(f"Unsupported year {year}; choose one of {SUPPORTED_YEARS}")
+    players_path = DATA_PROCESSED_ROOT / str(year) / f"draftpool_stats_{year}.csv"
+    teams_path = DATA_PROCESSED_ROOT / str(year) / f"draft_{year}_team_stats.csv"
+    return pd.read_csv(players_path), pd.read_csv(teams_path)
 
-    noncollege_path = WEIGHTS_ROOT / "best_noncollege_weights.npy"
-    if not noncollege_path.exists():
-        noncollege_path = Path("best_noncollege_weights.npy")
-
-    if college_path.exists():
-        college_array = _prepare_weight_array(np.load(college_path), is_college=True)
-    else:
-        college_array = normalized_weight_array(is_college=True)
-
-    if noncollege_path.exists():
-        noncollege_array = _prepare_weight_array(np.load(noncollege_path), is_college=False)
-    else:
-        noncollege_array = normalized_weight_array(is_college=False)
-
-    college_w = unpack_weights(college_array, is_college=True)
-    noncollege_w = unpack_weights(noncollege_array, is_college=False)
-
-    return college_w, noncollege_w
-
-def score_player_for_team(player_row, team_needs, use_composite=True, composite_weight=0.5, cluster_weights=None):
-    score = 0.0
-
-    # Fit-based scoring
-    for stat, weight in team_needs.items():
-        norm_stat = stat + "_norm"
-        value = player_row.get(norm_stat)
-        if pd.notna(value):
-            score += weight * max(value, 0.0)
-
-    # Composite scoring
-    if use_composite:
-        comps = [
-            player_row.get("OffenseScore"),
-            player_row.get("DefenseScore"),
-            player_row.get("GeneralScore"),
-        ]
-        comps = [c for c in comps if pd.notna(c)]
-        if comps:
-            score += composite_weight * float(np.mean(comps))
-
-    # Cluster-based adjustment
-    if cluster_weights:
-        cluster_score = 0.0
-        for i in range(len(cluster_weights)):
-            cluster_val = player_row.get(f"cluster_{i}", 0.0)
-            if pd.isna(cluster_val):
-                cluster_val = 0.0
-            cluster_score += cluster_weights[i] * cluster_val
-        score += cluster_score  # optionally * another weight (e.g. 0.2)
-
-    if not np.isfinite(score):
-        return 0.0
-
-    return max(score, 0.0)
 
 def load_clusters():
-    """Loads saved KMeans cluster models."""
-    from sklearn.cluster import KMeans
+    """Load models used by the separate playstyle visualization."""
     import joblib
 
-    college_kmeans_path = MODELS_ROOT / "kmeans_college.pkl"
-    noncollege_kmeans_path = MODELS_ROOT / "kmeans_noncollege.pkl"
+    college_path = MODELS_ROOT / "kmeans_college.pkl"
+    noncollege_path = MODELS_ROOT / "kmeans_noncollege.pkl"
+    if not college_path.exists() or not noncollege_path.exists():
+        raise FileNotFoundError("Cluster model files not found. Run fit_global_clusters.py first.")
+    return joblib.load(college_path), joblib.load(noncollege_path)
 
-    if not college_kmeans_path.exists() or not noncollege_kmeans_path.exists():
-        raise FileNotFoundError("❌ Cluster model files not found. Run fit_global_clusters.py first.")
 
-    college_kmeans = joblib.load(college_kmeans_path)
-    noncollege_kmeans = joblib.load(noncollege_kmeans_path)
-    return college_kmeans, noncollege_kmeans
+def evaluate_lottery(sim_df: pd.DataFrame, actual_df: pd.DataFrame) -> dict[str, float]:
+    """Evaluate a ranked set of picks; unselected actual players have relevance 0."""
+    actual = actual_df.drop_duplicates(subset="player").set_index("player")
+    actual_names = set(actual.index)
+    selected_names = set(sim_df["Player"])
 
-def simulate_draft(year, composite_weight=0.2, plot_distribution=True, college_weights=None, noncollege_weights=None):
-    if college_weights is None or noncollege_weights is None:
-        college_weights, noncollege_weights = load_default_weights()
-        
-    # Load data (paths now resolved from repo root)
-    players_csv = DATA_PROCESSED_ROOT / str(year) / f"draftpool_stats_{year}.csv"
-    team_stats_csv = DATA_PROCESSED_ROOT / str(year) / f"draft_{year}_team_stats.csv"
-    players_df = pd.read_csv(players_csv)
-    draft_order = pd.read_csv(team_stats_csv)["team"].tolist()
-    team_stats_df = pd.read_csv(team_stats_csv)
-    team_needs = get_team_needs(team_stats_df)
+    team_matches = [
+        name in actual_names and actual.loc[name, "team"] == team
+        for name, team in zip(sim_df["Player"], sim_df["Team"])
+    ]
+    team_match = sum(team_matches) / len(sim_df) if len(sim_df) else 0.0
+    lottery_hit_rate = len(actual_names & selected_names) / len(actual_names) if len(actual_names) else 0.0
 
-    # Clustering by classification
-    college_df = players_df[players_df["classification"] == "College"].copy()
-    noncollege_df = players_df[players_df["classification"] != "College"].copy()
-    
-    college_kmeans, noncollege_kmeans = load_clusters()
-    college_df = compute_playstyle_clusters(college_df, feature_cols=college_features, classification="College")
-    noncollege_df = compute_playstyle_clusters(noncollege_df, feature_cols=noncollege_features, classification="Non-College")
+    relevance = [
+        max(0, 15 - int(actual.loc[name, "pick"])) if name in actual_names else 0
+        for name in sim_df["Player"].head(14)
+    ]
+    ideal_relevance = sorted(
+        (max(0, 15 - int(pick)) for pick in actual["pick"]), reverse=True
+    )[:14]
 
-    players_df = pd.concat([college_df, noncollege_df], ignore_index=True)
+    def dcg(values):
+        return sum(value / np.log2(index + 2) for index, value in enumerate(values))
 
-    # Composite scores
-    players_df = add_composite_scores(players_df, college_weights, noncollege_weights)
+    ideal_dcg = dcg(ideal_relevance)
+    ndcg = dcg(relevance) / ideal_dcg if ideal_dcg else 0.0
+    first_hit_reciprocal_rank = next(
+        (1.0 / rank for rank, name in enumerate(sim_df["Player"], start=1) if name in actual_names),
+        0.0,
+    )
+    return {
+        "team_match": float(team_match),
+        "lottery_hit_rate": float(lottery_hit_rate),
+        "first_hit_reciprocal_rank": float(first_hit_reciprocal_rank),
+        "ndcg_at_14": float(ndcg),
+    }
 
-    # Normalize team-relevant stats by classification
-    all_needed_stats = set(stat for needs in team_needs.values() for stat in needs)
-    players_df_normalized = players_df.copy()
 
-    for stat in all_needed_stats:
-        if stat in players_df_normalized.columns:
-            for cls in players_df_normalized["classification"].unique():
-                mask = players_df_normalized["classification"] == cls
-                min_val = players_df_normalized.loc[mask, stat].min()
-                max_val = players_df_normalized.loc[mask, stat].max()
-                if max_val - min_val != 0:
-                    players_df_normalized.loc[mask, stat + "_norm"] = (
-                        (players_df_normalized.loc[mask, stat] - min_val) / (max_val - min_val)
-                    )
-                else:
-                    players_df_normalized.loc[mask, stat + "_norm"] = 0.5
+def simulate_draft(
+    year: int,
+    composite_weight: float = 0.2,
+    plot_distribution: bool = False,
+    college_weights=None,
+    noncollege_weights=None,
+):
+    """Pick the top remaining candidate for each team in historical draft order.
 
-    # Simulate draft
-    selected_players = []
-    for team in draft_order:
-        needs = team_needs.get(team, {})
-        available_players = players_df_normalized[
-            ~players_df_normalized["Name"].isin([p["Player"] for p in selected_players])
-        ].copy()
+    The tuple return shape is retained for existing callers. Its fourth value
+    is now reciprocal rank of the first lottery hit, rather than the old
+    rank-distance value that was incorrectly labelled MRR.
+    """
+    if college_weights is not None or noncollege_weights is not None:
+        raise ValueError("Legacy optimized weights are incompatible with baseline-v1 scoring")
 
-        # Apply FitScore with appropriate cluster weights per player
-        available_players["FitScore"] = available_players.apply(
-            lambda row: score_player_for_team(
-                row,
-                needs,
-                use_composite=True,
-                composite_weight=composite_weight,
-                cluster_weights=(
-                    college_weights["clusters"] if row["classification"] == "College"
-                    else noncollege_weights["clusters"]
-                )
-            ),
-            axis=1
-        )
-
-        best_pick = available_players.sort_values("FitScore", ascending=False).iloc[0]
-        selected_players.append({
+    players, teams = load_historical_data(year)
+    selected: list[dict] = []
+    taken: set[str] = set()
+    for team in teams["team"]:
+        ranking = rank_candidates(teams, players, team, composite_weight, frozenset(taken))
+        if not ranking.candidates:
+            raise ValueError("The prospect pool has fewer candidates than lottery picks")
+        choice = ranking.candidates[0]
+        selected.append({
             "Team": team,
-            "Player": best_pick["Name"],
-            "FitScore": best_pick["FitScore"]
+            "Player": choice.player,
+            "FitScore": choice.score,
+            "Warnings": "; ".join(choice.warnings),
         })
+        taken.add(choice.player)
 
-    sim_df = pd.DataFrame(selected_players)
-    actual_df = pd.read_csv(DATA_RAW_ROOT / str(year) / f"draft_{year}.csv")
+    sim_df = pd.DataFrame(selected)
+    actual = pd.read_csv(DATA_RAW_ROOT / str(year) / f"draft_{year}.csv")
+    metrics = evaluate_lottery(sim_df, actual)
 
-    print("Simulated Draft Picks:")
-    print(sim_df)
-
-    merged = sim_df.merge(actual_df, left_on="Player", right_on="player", how="left")
-    merged["Correct"] = merged["Team"] == merged["team"]
-    accuracy = merged["Correct"].mean()
-
-    # Lottery hit rate
-    actual_lottery_players = set(actual_df.sort_values("pick").head(14)["player"])
-    sim_players = set(sim_df["Player"])
-    lottery_hits = actual_lottery_players.intersection(sim_players)
-    lottery_accuracy = len(lottery_hits) / 14
-    
-    # After calculating `merged` and accuracy
-    merged["PredictedRank"] = range(1, len(merged) + 1)
-    merged["ActualRank"] = merged["pick"]
-
-    # MRR
-    merged["ReciprocalRank"] = 1 / (abs(merged["PredictedRank"] - merged["ActualRank"]) + 1)
-    mrr = merged["ReciprocalRank"].mean()
-
-    # nDCG@14
-    def dcg(scores):
-        return sum(score / np.log2(i + 2) for i, score in enumerate(scores))
-
-    top14 = merged.sort_values("PredictedRank").head(14)
-    top14["Relevance"] = 15 - top14["ActualRank"]  # Higher pick = higher relevance
-    ideal_relevance = sorted(top14["Relevance"], reverse=True)
-    ndcg = dcg(top14["Relevance"]) / dcg(ideal_relevance) if dcg(ideal_relevance) > 0 else 0
-
-    # Composite distribution plot
     if plot_distribution:
-        players_df_normalized["CompositeAvg"] = players_df_normalized[
-            ["OffenseScore", "DefenseScore", "GeneralScore"]
-        ].mean(axis=1)
+        import matplotlib.pyplot as plt
 
-        sorted_players = players_df_normalized.sort_values("CompositeAvg", ascending=False).reset_index(drop=True)
-        plt.figure(figsize=(14, 6))
-        sns.scatterplot(
-            data=sorted_players,
-            x=sorted_players.index,
-            y="CompositeAvg",
-            hue="classification",
-            palette="Set2",
-            s=100,
-            edgecolor="black"
-        )
-        plt.title("Composite Score Distribution by Prospect Classification")
-        plt.xlabel("Prospect Rank (by Composite Score)")
-        plt.ylabel("CompositeAvg")
-        plt.grid(True)
-        plt.tight_layout()
+        plt.plot(range(1, len(sim_df) + 1), sim_df["FitScore"], marker="o")
+        plt.xlabel("Pick")
+        plt.ylabel("Fit score")
+        plt.title(f"{year} simulated pick scores")
         plt.show()
 
-    print(f"✅ Draft Accuracy (Team Match): {accuracy:.2%}")
-    print(f"🎯 Lottery Hit Rate: {lottery_accuracy:.2%}")
-    return sim_df, accuracy, lottery_accuracy, mrr, ndcg
+    return (
+        sim_df,
+        metrics["team_match"],
+        metrics["lottery_hit_rate"],
+        metrics["first_hit_reciprocal_rank"],
+        metrics["ndcg_at_14"],
+    )
+
 
 def average_rank_difference(df_pred, df_true):
-    """
-    Computes the average absolute difference in rank between prediction and actual.
-    """
+    """Average absolute position difference for players present in both lists."""
     pred_ranks = df_pred.reset_index().reset_index().set_index("Player")["level_0"]
     true_ranks = df_true.reset_index().reset_index().set_index("Player")["level_0"]
-    
     common_players = pred_ranks.index.intersection(true_ranks.index)
-    diffs = (pred_ranks.loc[common_players] - true_ranks.loc[common_players]).abs()
-    return diffs.mean()
+    return (pred_ranks.loc[common_players] - true_ranks.loc[common_players]).abs().mean()

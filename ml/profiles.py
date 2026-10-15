@@ -39,6 +39,10 @@ def minmax01(s):
 
 def scale_for_radar(df, cols):
     tmp = df[cols].apply(zscore, axis=0)
+    # Every radar axis means "better" farther from the center.
+    for col in ("TOV", "TOV%", "DRTG"):
+        if col in tmp.columns:
+            tmp[col] = -tmp[col]
     tmp = tmp.apply(minmax01, axis=0)
     return tmp
 
@@ -99,6 +103,8 @@ def build_profiles(year: int):
     # overall score (without Upside for now; UI can show either)
     z_pg  = draft[cols_pg].apply(zscore, axis=0)
     z_adv = draft[cols_adv].apply(zscore, axis=0)
+    if "TOV" in z_pg.columns:
+        z_pg["TOV"] = -z_pg["TOV"]
 
     pergame_weights  = {c:1.0 for c in cols_pg}
     advanced_weights = {c:1.0 for c in cols_adv}
@@ -155,7 +161,8 @@ def get_prospect_profile(year: int, name: str):
     vals_adv = row[[f"adv::{c}" for c in cols_adv]].values
 
     fig_pg, ax_pg = plt.subplots(subplot_kw=dict(polar=True), figsize=(5, 5))
-    radar_plot(vals_pg, cols_pg, title=f"{row['Name']} – Per-Game", ax=ax_pg)
+    labels_pg = ["TOV (lower better)" if col == "TOV" else col for col in cols_pg]
+    radar_plot(vals_pg, labels_pg, title=f"{row['Name']} – Per-Game", ax=ax_pg)
 
     fig_adv, ax_adv = plt.subplots(subplot_kw=dict(polar=True), figsize=(5, 5))
     radar_plot(vals_adv, cols_adv, title=f"{row['Name']} – Advanced", ax=ax_adv)
