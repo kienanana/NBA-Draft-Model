@@ -28,3 +28,14 @@ def test_historical_simulation_returns_finite_metrics():
     assert picks["FitScore"].notna().all()
     assert all(0 <= metric <= 1 for metric in (match, hit, first_hit_rr, ndcg))
     assert ndcg > 0
+
+
+def test_evaluation_matches_known_draft_name_variants():
+    predicted = pd.DataFrame({"Team": ["A", "B"], "Player": ["Alexandre Sarr", "Nikola Topić"]})
+    actual = pd.DataFrame({
+        "pick": [1, 2, 15], "team": ["A", "B", "C"],
+        "player": ["Alex Sarr", "Nikola Topic", "Other player"],
+    })
+    metrics = evaluate_lottery(predicted, actual)
+    assert metrics["team_match"] == 1
+    assert metrics["lottery_hit_rate"] == 1

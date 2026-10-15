@@ -1,5 +1,9 @@
 # Scoring contract: baseline-v1
 
+This contract describes the separate team-fit simulator and team-ranking API.
+Lottery inclusion training uses the [prospect-only model](lottery-model.md),
+and team matches do not affect its training or selection.
+
 The active draft simulation and ranking API use the same function in `ml/scoring.py`.
 The score is a **relative ranking signal**, not a draft probability or an NBA
 outcome prediction. Earlier optimized weight files belong to a different score
