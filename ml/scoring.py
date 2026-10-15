@@ -26,10 +26,12 @@ class StatDefinition:
 
 
 # These team columns have a documented counterpart in the prospect pool.
-# In the historical team CSV, DRB% is in the opponent section, so it is
-# deliberately excluded rather than matched to a prospect's own DRB%.
+# The source table groups DRB% with defensive Four Factors. It measures the
+# team's own defensive rebounding, despite appearing beside opponent eFG% and
+# opponent TOV% in the flattened CSV.
 TEAM_FIT_STATS = (
     StatDefinition("ORB%", "ORB%", True, "ORB%", True),
+    StatDefinition("DRB%", "DRB%", True, "DRB%", True),
     StatDefinition("TOV%", "TOV%", False, "TOV%", False),
     StatDefinition("TS%", "TS%", True, "TS%", True),
     StatDefinition("ORtg", "ORTG", True, "ORtg", True),
