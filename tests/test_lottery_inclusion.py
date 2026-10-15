@@ -1,6 +1,8 @@
 import pytest
 
-from ml.lottery_inclusion import FEATURES, backtest, forecast, load_class, load_pool, train_through
+from ml.lottery_inclusion import (
+    FEATURES, assign_teams, backtest, forecast, load_class, load_pool, train_through,
+)
 from ml.names import player_key
 
 
@@ -40,3 +42,11 @@ def test_backtest_trains_only_on_prior_years():
     assert report["train_through"].tolist() == [2021, 2022, 2023]
     assert report["model_hits_at_14"].between(0, 14).all()
     assert report["quality_hits_at_14"].between(0, 14).all()
+
+
+def test_team_assignment_keeps_the_model_top_fourteen_fixed():
+    ranked = forecast(2024, train_through(2023))
+    assigned, metrics = assign_teams(2024, ranked)
+    assert len(assigned) == 14
+    assert set(assigned["Player"]) == set(ranked.head(14)["Name"])
+    assert 0 <= metrics["team_match"] <= 1

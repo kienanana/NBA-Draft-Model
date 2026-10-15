@@ -16,7 +16,7 @@ from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft
 from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
-from ml.lottery_inclusion import BACKTEST_PATH, MODEL_PATH, forecast, load_class
+from ml.lottery_inclusion import BACKTEST_PATH, MODEL_PATH, assign_teams, forecast, load_class
 from app.api_client import RankingAPIError, get_rankings, get_teams
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
@@ -448,6 +448,14 @@ with tab5:
             hide_index=True, width="stretch",
         )
         st.caption("Model scores order candidates; they are not calibrated probabilities.")
+        with st.expander("Optional team assignment"):
+            assigned, assignment_metrics = assign_teams(2024, ranked)
+            st.caption(
+                "The existing team-fit scorer assigns only the model's selected 14 players. "
+                "This step does not affect model training or lottery inclusion."
+            )
+            st.metric("Exact team matches", f"{int(assignment_metrics['team_match'] * 14)} / 14")
+            st.dataframe(assigned, hide_index=True, width="stretch")
         with st.expander("All candidates"):
             st.dataframe(ranked, hide_index=True, width="stretch")
         with st.expander("Year-by-year backtest"):

@@ -16,7 +16,10 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from .names import player_key
 from .scoring import rank_candidates
-from .simulation import DATA_PROCESSED_ROOT, DATA_RAW_ROOT, PROJECT_ROOT
+from .simulation import (
+    DATA_PROCESSED_ROOT, DATA_RAW_ROOT, PROJECT_ROOT, evaluate_lottery,
+    load_historical_data,
+)
 
 
 MODEL_VERSION = "lottery-inclusion-v1"
@@ -150,6 +153,27 @@ def forecast(year: int, artifact: dict) -> pd.DataFrame:
     result = result.sort_values(["model_score", "Name"], ascending=[False, True]).reset_index(drop=True)
     result.insert(0, "rank", np.arange(1, len(result) + 1))
     return result
+
+
+def assign_teams(year: int, ranked: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, float]]:
+    """Assign a fixed model top 14 using team fit, without changing inclusion."""
+    selected = ranked.head(14)["Name"].tolist()
+    if len(selected) != 14 or len(set(selected)) != 14:
+        raise ValueError("Team assignment needs 14 distinct model selections")
+    players, teams = load_historical_data(year)
+    unavailable = set(players["Name"]) - set(selected)
+    if len(unavailable) != len(players) - 14:
+        raise ValueError("Model selections must be present in the prospect pool")
+    taken: set[str] = set()
+    picks = []
+    for team in teams["team"]:
+        ranking = rank_candidates(teams, players, team, excluded_players=frozenset(unavailable | taken))
+        choice = ranking.candidates[0]
+        picks.append({"Team": team, "Player": choice.player, "FitScore": choice.score})
+        taken.add(choice.player)
+    result = pd.DataFrame(picks)
+    actual = pd.read_csv(DATA_RAW_ROOT / str(year) / f"draft_{year}.csv")
+    return result, evaluate_lottery(result, actual)
 
 
 def main() -> None:

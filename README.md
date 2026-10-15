@@ -16,7 +16,7 @@ python -m pytest -q tests
 python -m streamlit run app/streamlit_app.py
 ```
 
-The **Lottery Forecast** tab shows the model's top 14 for 2024 and its year-by-year backtest. The included model artifact was trained on 2020–2023; 2024 was excluded from its training. To rebuild the artifact and report:
+The **Lottery Forecast** tab shows the model's top 14 for 2024, an optional assignment of those players to teams, and its year-by-year backtest. The included model artifact was trained on 2020–2023; 2024 was excluded from its training. To rebuild the artifact and report:
 
 ```bash
 python -m ml.lottery_inclusion
@@ -36,7 +36,7 @@ The API uses `http://127.0.0.1:8000` by default. Set `DRAFTLAB_API_URL` to use a
 
 The checked-in prospect pools contain roughly 70 players per year for 2020–2024, assembled from college, international, G League, and Overtime Elite data. `data/processed/<year>/draftpool_stats_<year>.csv` supplies model features; `data/raw/<year>/draft_<year>.csv` supplies top-14 labels. Collection and cleaning work remains in `notebooks/`. Name aliases are resolved before assigning labels or evaluating the simulation.
 
-The main metric is **lottery hits@14**: among the model's 14 highest-ranked prospects, how many were actually picked in the lottery? Average precision measures ranking over the full pool. The backtest trains on earlier years only and evaluates 2022, 2023, and 2024 separately. It compares the learned model with the existing four-stat quality score and the expected count from random selection. Team-match accuracy belongs only to the separate simulation.
+The main metric is **lottery hits@14**: among the model's 14 highest-ranked prospects, how many were actually picked in the lottery? Average precision measures ranking over the full pool. The backtest trains on earlier years only and evaluates 2022, 2023, and 2024 separately. It compares the learned model with the existing four-stat quality score and the expected count from random selection. Exact team matches come from an optional assignment step and do not affect model training or selection.
 
 | Test year | Model hits@14 | Quality-score hits@14 | Random expected hits@14 |
 | --- | ---: | ---: | ---: |
