@@ -110,7 +110,7 @@ Processed outputs:
 
 ### Draft simulation
 - **Stateful process:** pick-by-pick, removing selected players
-- **Fit features:** team needs in ORB%, TOV%, TS%, ORtg and DRtg, scored against direction-aware prospect metrics
+- **Fit features:** team needs in ORB%, DRB%, TOV%, TS%, ORtg and DRtg, scored against direction-aware prospect metrics
 - **Score blending:** team fit plus a small prospect-quality score from TS%, PER, AST/TO and age
 - **Missing data:** neutral 0.5 contribution with a candidate warning; normalization within college and non-college cohorts
 - **Evaluation metrics:** Team-match accuracy, Lottery hit rate, first-hit reciprocal rank, nDCG@14

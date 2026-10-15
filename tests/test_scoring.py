@@ -10,6 +10,7 @@ def test_lower_is_better_for_team_turnovers_and_defensive_rating():
     teams = pd.DataFrame({
         "team": ["Weak", "Strong", "Strong"],
         "ORB%": [20, 20, 20],
+        "DRB%": [70, 80, 80],
         "TOV%": [20, 10, 10],
         "TS%": [0.45, 0.65, 0.65],
         "ORtg": [90, 120, 120],
@@ -19,7 +20,7 @@ def test_lower_is_better_for_team_turnovers_and_defensive_rating():
     strong_needs, _ = compute_team_needs(teams, "Strong")
 
     assert warnings == ("Team stat ORB% has no usable variation",)
-    assert set(weak_needs) == {"TOV%", "TS%", "ORtg", "DRtg"}
+    assert set(weak_needs) == {"DRB%", "TOV%", "TS%", "ORtg", "DRtg"}
     assert sum(weak_needs.values()) == pytest.approx(1.0)
     assert strong_needs == {}
 
@@ -73,6 +74,23 @@ def test_lower_player_defensive_rating_is_rewarded():
     ranking = rank_candidates(teams, players, "Weak defense", composite_weight=0)
     assert ranking.candidates[0].player == "Lower rating"
     assert ranking.candidates[0].contributions["team_fit:DRtg"] == 1
+
+
+def test_higher_player_defensive_rebounding_fits_a_weak_rebounding_team():
+    teams = pd.DataFrame({"team": ["Weak boards", "Strong boards"], "DRB%": [70, 80]})
+    players = pd.DataFrame({
+        "Name": ["Better rebounder", "Worse rebounder"],
+        "classification": ["College", "College"],
+        "DRB%": [25, 10],
+        "TS%": [0.55, 0.55],
+        "PER": [20, 20],
+        "AST/TO": [2, 2],
+        "Age": [20, 20],
+    })
+    ranking = rank_candidates(teams, players, "Weak boards", composite_weight=0)
+    assert ranking.team_needs == {"DRB%": 1}
+    assert ranking.candidates[0].player == "Better rebounder"
+    assert ranking.candidates[0].contributions["team_fit:DRB%"] == 1
 
 
 def test_invalid_or_ambiguous_inputs_are_rejected():
