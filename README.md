@@ -34,7 +34,7 @@ The API uses `http://127.0.0.1:8000` by default. Set `DRAFTLAB_API_URL` to use a
 
 ## Data and evaluation
 
-The checked-in prospect pools contain roughly 70 players per year for 2020–2024, assembled from college, international, G League, and Overtime Elite data. `data/processed/<year>/draftpool_stats_<year>.csv` supplies model features; `data/raw/<year>/draft_<year>.csv` supplies top-14 labels. Collection and cleaning work remains in `notebooks/`. Name aliases are resolved before assigning labels or evaluating the simulation.
+The checked-in pools contain roughly 70 players per year for 2020–2024. Prospect names came from Tankathon's `past_drafts/<year>` pages; player statistics were scraped separately for each prospect. The pools cover college, international, G League, and Overtime Elite players. `data/processed/<year>/draftpool_stats_<year>.csv` supplies model features; `data/raw/<year>/draft_<year>.csv` supplies top-14 labels. Collection and cleaning work remains in `notebooks/`. Name aliases are resolved before assigning labels or evaluating the simulation.
 
 The main metric is **lottery hits@14**: among the model's 14 highest-ranked prospects, how many were actually picked in the lottery? Average precision measures ranking over the full pool. The backtest trains on earlier years only and evaluates 2022, 2023, and 2024 separately. It compares the learned model with the existing four-stat quality score and the expected count from random selection. Exact team matches come from an optional assignment step and do not affect model training or selection.
 
@@ -44,7 +44,7 @@ The main metric is **lottery hits@14**: among the model's 14 highest-ranked pros
 | 2023 | 9 | 6 | 2.8 |
 | 2024 | 8 | 8 | 2.6 |
 
-These are small historical samples. More seriously, the first 14 names in every saved `data/raw/<year>/prospect_pool_<year>.csv` exactly match that year's actual draft order, and the files have no verified pre-draft snapshot dates. **Neither the candidate pools nor these scores should be represented as prospective pre-draft validation.** The model does not use the pool's row order, draft pick, team, or other outcomes as features. The saved pool order also cannot serve as a mock-draft benchmark. A comparison with public mock rankings needs dated, genuinely pre-draft snapshots.
+These are small historical samples. The Tankathon scraper reads `past_drafts/<year>` pages, and the first 14 names in every saved `prospect_pool_<year>.csv` exactly match that year's actual draft order. **The candidate universe is retrospective, so these scores are not prospective pre-draft validation.** The model does not use the pool's row order, draft pick, team, or other outcomes as features. Randomizing row order would not change which players entered the pool. The saved order also cannot serve as a mock-draft benchmark; that comparison needs dated pre-draft snapshots.
 
 ## Project structure
 
