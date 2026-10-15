@@ -6,14 +6,13 @@ dependencies:
   - pandas
   - numpy
   - jupyter
-  - scikit-learn
   - matplotlib
   - seaborn
   - xgboost
   - ipykernel
   - selenium
   - beautifulsoup4
-  - scikit-learn
+  - scikit-learn>=1.7,<1.8
   - scikit-optimize
   - lxml
   - pip

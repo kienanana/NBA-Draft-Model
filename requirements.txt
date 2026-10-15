@@ -3,7 +3,7 @@ pandas
 numpy
 matplotlib
 pillow
-scikit-learn
+scikit-learn>=1.7,<1.8
 seaborn
 altair
 requests>=2,<3

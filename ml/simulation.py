@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .scoring import rank_candidates
+from .names import player_key
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -38,20 +39,23 @@ def load_clusters():
 
 def evaluate_lottery(sim_df: pd.DataFrame, actual_df: pd.DataFrame) -> dict[str, float]:
     """Evaluate a ranked set of picks; unselected actual players have relevance 0."""
-    actual = actual_df.drop_duplicates(subset="player").set_index("player")
+    actual = actual_df.loc[actual_df["pick"].between(1, 14)].copy()
+    actual["player_key"] = actual["player"].map(player_key)
+    actual = actual.drop_duplicates(subset="player_key").set_index("player_key")
     actual_names = set(actual.index)
-    selected_names = set(sim_df["Player"])
+    selected_keys = sim_df["Player"].map(player_key)
+    selected_names = set(selected_keys)
 
     team_matches = [
         name in actual_names and actual.loc[name, "team"] == team
-        for name, team in zip(sim_df["Player"], sim_df["Team"])
+        for name, team in zip(selected_keys, sim_df["Team"])
     ]
     team_match = sum(team_matches) / len(sim_df) if len(sim_df) else 0.0
     lottery_hit_rate = len(actual_names & selected_names) / len(actual_names) if len(actual_names) else 0.0
 
     relevance = [
         max(0, 15 - int(actual.loc[name, "pick"])) if name in actual_names else 0
-        for name in sim_df["Player"].head(14)
+        for name in selected_keys.head(14)
     ]
     ideal_relevance = sorted(
         (max(0, 15 - int(pick)) for pick in actual["pick"]), reverse=True
@@ -63,7 +67,7 @@ def evaluate_lottery(sim_df: pd.DataFrame, actual_df: pd.DataFrame) -> dict[str,
     ideal_dcg = dcg(ideal_relevance)
     ndcg = dcg(relevance) / ideal_dcg if ideal_dcg else 0.0
     first_hit_reciprocal_rank = next(
-        (1.0 / rank for rank, name in enumerate(sim_df["Player"], start=1) if name in actual_names),
+        (1.0 / rank for rank, name in enumerate(selected_keys, start=1) if name in actual_names),
         0.0,
     )
     return {

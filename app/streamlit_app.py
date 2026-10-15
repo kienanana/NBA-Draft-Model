@@ -16,12 +16,15 @@ from ml.profiles import get_prospect_profile, build_profiles
 from ml.simulation import simulate_draft
 from ml.simulation import load_clusters  
 from ml.features import college_features, noncollege_features
+from ml.lottery_inclusion import BACKTEST_PATH, MODEL_PATH, forecast, load_class
 from app.api_client import RankingAPIError, get_rankings, get_teams
 
 st.set_page_config(page_title="Draft Lab", layout="wide")
 st.title("🏀 NBA Draft Lab — Profiles & Simulation")
 
-tab1, tab2, tab3, tab4 = st.tabs(["Prospect Profiles", "Clustering", "Draft Simulation", "Team Rankings"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Prospect Profiles", "Clustering", "Draft Simulation", "Team Rankings", "Lottery Forecast"
+])
 
 # -------------------- TAB 1: PROFILES --------------------
 with tab1:
@@ -415,3 +418,37 @@ with tab4:
                 for candidate in (first, second):
                     if candidate["warnings"]:
                         st.warning(f"{candidate['player']}: {'; '.join(candidate['warnings'])}")
+
+# -------------------- TAB 5: LOTTERY INCLUSION --------------------
+with tab5:
+    st.subheader("Lottery Forecast")
+    st.caption(
+        "Prospect-only ranking for the 2024 lottery. The model was trained on "
+        "2020–2023 and selects its top 14 prospects; team matches do not affect training."
+    )
+    st.info(
+        "This is a historical replay. The saved candidate lists have no verified "
+        "pre-draft snapshot date, so these results are not prospective accuracy."
+    )
+    if not MODEL_PATH.exists() or not BACKTEST_PATH.exists():
+        st.warning("Model files are missing. Run `python -m ml.lottery_inclusion` from the project root.")
+    else:
+        import joblib
+
+        artifact = joblib.load(MODEL_PATH)
+        ranked = forecast(2024, artifact)
+        top_14 = ranked.head(14)
+        actual = load_class(2024).set_index("Name")["lottery"]
+        st.metric("2024 lottery players in model top 14", f"{int(actual.loc[top_14['Name']].sum())} / 14")
+        st.dataframe(
+            top_14[["rank", "Name", "classification", "model_score"]].rename(columns={
+                "rank": "Rank", "Name": "Prospect", "classification": "Cohort",
+                "model_score": "Model score",
+            }),
+            hide_index=True, width="stretch",
+        )
+        st.caption("Model scores order candidates; they are not calibrated probabilities.")
+        with st.expander("All candidates"):
+            st.dataframe(ranked, hide_index=True, width="stretch")
+        with st.expander("Year-by-year backtest"):
+            st.dataframe(pd.read_csv(BACKTEST_PATH), hide_index=True, width="stretch")
