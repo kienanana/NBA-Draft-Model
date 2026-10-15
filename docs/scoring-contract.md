@@ -17,15 +17,18 @@ prospect-quality term.
 | Team column | Prospect column | Better team value | Better prospect value |
 | --- | --- | --- | --- |
 | `ORB%` | `ORB%` | Higher | Higher |
+| `DRB%` | `DRB%` | Higher | Higher |
 | `TOV%` | `TOV%` | Lower | Lower |
 | `TS%` | `TS%` | Higher | Higher |
 | `ORtg` | `ORTG` | Higher | Higher |
 | `DRtg` | `DRTG` | Lower | Lower |
 
-The team CSV's `DRB%` sits in its opponent-stat section. It is excluded because
-it does not describe the same measurement as a prospect's own `DRB%`. Other
-columns in the old needs list are absent from the team CSVs. Their intended
-mapping needs source-level validation before they enter this model.
+The source table groups `DRB%` under defensive Four Factors, alongside
+opponent shooting and turnover columns. It is the team's **own** defensive
+rebounding percentage, so it can be paired with a prospect's `DRB%`. The
+flattened CSV loses that grouped heading; nearby columns must be interpreted
+individually. Other columns in the old needs list are absent from the team
+CSVs. Their intended mapping needs source-level validation before use.
 
 ## Prospect values and score
 
